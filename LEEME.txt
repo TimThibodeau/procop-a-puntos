@@ -1,0 +1,39 @@
+PROCOP a Puntos · app para el móvil y el ordenador, con el progreso en la nube
+================================================================================
+
+A) CREAR FIREBASE (10 minutos, gratis)
+1. Entra en https://console.firebase.google.com con tu cuenta de Google → "Crear un proyecto".
+   Nombre: procop-a-puntos. Google Analytics: no hace falta (desactívalo).
+   (Mejor un proyecto nuevo y no el de la Liga del Callejero: así no tocas sus reglas.)
+2. Menú izquierdo → Compilación → Authentication → "Comenzar" →
+   Método de acceso → "Correo electrónico/contraseña" → Habilitar (solo el primer interruptor) → Guardar.
+3. Menú izquierdo → Compilación → Firestore Database → "Crear base de datos" →
+   Ubicación: eur3 (Europa) → "Iniciar en modo de producción" → Crear.
+4. En Firestore → pestaña "Reglas": borra lo que haya, pega el contenido del archivo firestore.rules → Publicar.
+5. ⚙ (arriba a la izquierda) → Configuración del proyecto → General → abajo, "Tus apps" → icono web </> →
+   Apodo: procop-web → Registrar app (NO marques Firebase Hosting).
+   Te enseña un bloque "const firebaseConfig = { apiKey: ..., authDomain: ..., ... }".
+6. Abre el archivo firebase-config.js y copia esos 6 valores dentro de las comillas correspondientes.
+   (No es secreto: lo que protege tus datos son las reglas del paso 4.)
+7. Authentication → Configuración → Dominios autorizados → "Agregar dominio" → TU-USUARIO.github.io
+
+B) SUBIRLA A GITHUB
+1. Crea un repositorio nuevo, por ejemplo "procop-a-puntos" (público: GitHub Pages gratis lo pide;
+   tu progreso NO va en el repositorio, va a Firebase).
+2. Add file → Upload files → arrastra TODOS los archivos de esta carpeta (con el firebase-config.js ya relleno) → Commit.
+3. Settings → Pages → Source: "Deploy from a branch" → Branch: main, carpeta / (root) → Save.
+4. En un par de minutos: https://TU-USUARIO.github.io/procop-a-puntos/
+
+C) USARLA
+1. Ábrela en el móvil:
+   - iPhone (Safari): Compartir → "Añadir a pantalla de inicio".
+   - Android (Chrome): menú ⋮ → "Instalar aplicación" / "Añadir a pantalla de inicio".
+2. Arriba a la derecha, "☁ Entrar" → "Crear cuenta" con tu correo y una contraseña (la primera vez).
+   En el ordenador y en cualquier otro sitio, "Entrar" con el mismo correo: tendrás el mismo progreso.
+3. Para traerte lo que ya llevas en la versión de Claude: allí, Ayuda → "Copiar mi progreso";
+   en la app, Ayuda → pégalo → "Importar". Solo hace falta una vez.
+4. Sin internet funciona igual; lo que hagas se sube cuando vuelva la conexión (o al abrirla otra vez).
+
+D) ACTUALIZACIONES
+Cuando te pase una versión nueva, sustituye en el repositorio solo index.html (y cloud.js si viene).
+NO sustituyas firebase-config.js, que es el tuyo. La app coge la versión nueva sola al abrirla con internet.
