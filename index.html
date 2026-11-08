@@ -221,7 +221,8 @@ function save(){
 /* fusiona un progreso externo: en cada registro gana el más reciente */
 function mergeProg(r){let n=0;
   for(const sec of ["lists","facts","mmpp","quick","tab","defs"]){prog[sec]=prog[sec]||{};for(const [k,v] of Object.entries((r&&r[sec])||{})){const mine=prog[sec][k];if(!mine||(v.last||0)>(mine.last||0)){prog[sec][k]=v;n++}}}
-  ["cap","order","hideMando","hideN","simCfg"].forEach(k=>{if(prog[k]===undefined&&r&&r[k]!==undefined)prog[k]=r[k]});
+  ["cap","repOrder","hideMando","hideN","simCfg"].forEach(k=>{if(prog[k]===undefined&&r&&r[k]!==undefined)prog[k]=r[k]});
+  if(r&&Array.isArray(r.sims)){prog.sims=prog.sims||[];r.sims.forEach(x=>{if(!prog.sims.some(y=>y.id===x.id)){prog.sims.push(x);n++}})}
   try{localStorage.setItem("procop-prog",JSON.stringify(prog))}catch(e){}
   return n;
 }
@@ -230,7 +231,7 @@ async function pushRemote(){
   if(!db||!uid)return;
   if(pushing){pendingPush=true;return}
   pushing=true;
-  try{await db.doc("data/users/"+uid+"/state/progress").set({lists:prog.lists,facts:prog.facts,mmpp:prog.mmpp,quick:prog.quick,tab:prog.tab,defs:prog.defs,cap:prog.cap===undefined?25:prog.cap,order:prog.order||"func",hideMando:prog.hideMando===false?false:true,t:Date.now()});setSync("guardado en tu cuenta")}
+  try{await db.doc("data/users/"+uid+"/state/progress").set({lists:prog.lists,facts:prog.facts,mmpp:prog.mmpp,quick:prog.quick,tab:prog.tab,defs:prog.defs,sims:prog.sims||[],cap:prog.cap===undefined?25:prog.cap,order:prog.repOrder||"mezcla",hideMando:prog.hideMando===false?false:true,t:Date.now()});setSync("guardado en tu cuenta")}
   catch(e){setSync("guardado solo en este dispositivo")}
   pushing=false;if(pendingPush){pendingPush=false;pushRemote()}
 }
@@ -253,9 +254,10 @@ async function initRemote(){
       for(const [k,v] of Object.entries(r.quick||{})){const mine=prog.quick[k];if(!mine||(v.last||0)>(mine.last||0))prog.quick[k]=v}
       for(const [k,v] of Object.entries(r.tab||{})){const mine=prog.tab[k];if(!mine||(v.last||0)>(mine.last||0))prog.tab[k]=v}
       for(const [k,v] of Object.entries(r.defs||{})){const mine=prog.defs[k];if(!mine||(v.last||0)>(mine.last||0))prog.defs[k]=v}
+      if(Array.isArray(r.sims)){prog.sims=prog.sims||[];r.sims.forEach(x=>{if(!prog.sims.some(y=>y.id===x.id))prog.sims.push(x)})}
       if(prog.hideMando===undefined&&r.hideMando===false)prog.hideMando=false;
       if(prog.cap===undefined&&typeof r.cap==="number")prog.cap=r.cap;
-      if(!prog.order&&r.order)prog.order=r.order;
+      if(!prog.repOrder&&r.order&&r.order!=="func")prog.repOrder=r.order;
       try{localStorage.setItem("procop-prog",JSON.stringify(prog))}catch(e){}
       render();
     }
@@ -333,16 +335,19 @@ function vInicio(el){
   const V=L.filter(visible);
   const due=V.filter(l=>isDue(l.id));const seen=V.filter(l=>st(l.id));
   // prioridad: 1) falladas la última vez 2) salió en examen 3) funciones de bombero 4) resto; dentro, la más atrasada primero
-  const ord=prog.order||"func";
+  const ord=prog.repOrder||"mezcla";
   const failed=l=>{const s=st(l.id);return s.lastScore!==undefined&&s.lastScore<0.6};
+  const byPrio=(a,b)=>(failed(a)?0:1)-(failed(b)?0:1)||(EXAM[a.id]?0:1)-(EXAM[b.id]?0:1)||st(a.id).due-st(b.id).due;
+  const dueFunc=due.filter(nucleo).sort(byPrio),dueRest=due.filter(l=>!nucleo(l)).sort(byPrio);
   if(ord==="olvido")due.sort((a,b)=>st(a.id).due-st(b.id).due);
-  else due.sort((a,b)=>(nucleo(a)?0:1)-(nucleo(b)?0:1)||(failed(a)?0:1)-(failed(b)?0:1)||(EXAM[a.id]?0:1)-(EXAM[b.id]?0:1)||st(a.id).due-st(b.id).due);
-  const dueFunc=due.filter(nucleo);
+  else if(ord==="func")due.splice(0,due.length,...dueFunc,...dueRest);
+  else{const mix=[];let i=0,j=0;while(i<dueFunc.length||j<dueRest.length){for(let k=0;k<3&&i<dueFunc.length;k++)mix.push(dueFunc[i++]);for(let k=0;k<2&&j<dueRest.length;k++)mix.push(dueRest[j++])}due.splice(0,due.length,...mix)}
   const cap=prog.cap===undefined?25:prog.cap;
   const t0=new Date();t0.setHours(0,0,0,0);
   const doneToday=V.filter(l=>{const s=st(l.id);return s&&s.last>=t0.getTime()&&s.tries>1}).length;
   const left=cap===0?due.length:Math.max(0,cap-doneToday);
   const today=due.slice(0,left);
+  const ahead=seen.filter(l=>!isDue(l.id)).sort((a,b)=>st(a.id).due-st(b.id).due);
   const core=L.filter(nucleo),coreSeen=core.filter(l=>st(l.id)),coreMaster=core.filter(l=>(st(l.id)||{}).box>=4);
   const fresh=core.filter(l=>!st(l.id));const freshExam=fresh.filter(l=>EXAM[l.id]);
   el.innerHTML=`
@@ -350,18 +355,21 @@ function vInicio(el){
     <div class="eyebrow">Repaso de hoy</div>
     <h2>${today.length?`Hoy: ${today.length} lista${today.length>1?"s":""} para repasar`:due.length?"Tope de hoy cumplido":seen.length?"Al día. Toca meter listas nuevas":"Empieza por las funciones de bombero"}</h2>
     ${due.length?`<p style="margin:0">${due.length} pendiente${due.length>1?"s":""} en total${cap?` · tope diario ${cap} (≈ ${Math.round(cap*2.5)} min)`:""}${doneToday?` · ya has repasado ${doneToday} hoy`:""}${due.length>today.length&&today.length?` · las ${due.length-today.length} restantes esperan a mañana`:""}</p>`:""}
-    <p class="muted" style="margin:0">${ord==="olvido"?"Orden por curva de olvido: primero la que lleva más días esperando, sea lo que sea.":"Orden: primero las funciones de bombero (dentro, las que fallaste y lo que salió en examen), después el resto."} Una lista entra aquí cuando la haces en "Ponerme a prueba" y la guardas.</p>
-    <div class="row" style="gap:8px"><span class="eyebrow">Orden</span><div class="chips"><button class="chip" data-ord="func" aria-pressed="${ord!=="olvido"}">Funciones primero</button><button class="chip" data-ord="olvido" aria-pressed="${ord==="olvido"}">Curva de olvido</button></div></div>
+    <p class="muted" style="margin:0">${ord==="olvido"?"Orden por curva de olvido: primero la que lleva más días esperando, sea lo que sea.":ord==="func"?"Orden: primero todas las funciones de bombero, después el resto.":"Mezcla: 3 funciones y 2 del resto, alternando; dentro de cada grupo, primero lo que fallaste y lo que salió en examen."} Una lista entra aquí cuando la haces en "Ponerme a prueba" y la guardas.</p>
+    <div class="row" style="gap:8px"><span class="eyebrow">Orden</span><div class="chips"><button class="chip" data-ord="mezcla" aria-pressed="${ord==="mezcla"}">Mezcla 3:2</button><button class="chip" data-ord="func" aria-pressed="${ord==="func"}">Funciones primero</button><button class="chip" data-ord="olvido" aria-pressed="${ord==="olvido"}">Curva de olvido</button></div></div>
     <div class="row" style="gap:8px"><span class="eyebrow">Tope diario</span><div class="chips">${[15,25,35,0].map(n=>`<button class="chip" data-cap="${n}" aria-pressed="${cap===n}">${n||"Sin tope"}</button>`).join("")}</div></div>
     <div class="row">
-      ${today.length?`<button class="btn primary" id="goDue">Repasar ${today.length}</button>`:""}
-      ${dueFunc.length?`<button class="btn" id="goFunc">Solo funciones (${Math.min(dueFunc.length,cap||dueFunc.length)})</button>`:""}
-      ${!today.length&&due.length?`<button class="btn" id="goMore">Seguir igualmente (${Math.min(10,due.length)} más)</button>`:""}
-      <button class="btn ${due.length?"":"primary"}" id="goQuick">Modo rápido</button>
-      ${fresh.length?`<button class="btn" id="goNew">Lista nueva de funciones</button>`:""}
-      <button class="btn" id="goSim">Examen tipo</button>
+      ${today.length?`<button class="btn primary" id="goDue">Repasar ${today.length}</button>`
+        :due.length?`<button class="btn primary" id="goMore">Seguir igualmente (${Math.min(10,due.length)} más)</button>`
+        :seen.length?`<button class="btn primary" id="goAhead">Adelantar repaso (${Math.min(10,ahead.length)})</button>`:""}
+      ${seen.length?`<button class="btn" id="goFunc" ${dueFunc.length?"":"disabled"}>Solo funciones (${Math.min(dueFunc.length,cap||dueFunc.length)})</button>
+      <button class="btn" id="goRest" ${dueRest.length?"":"disabled"}>Solo resto (${Math.min(dueRest.length,cap||dueRest.length)})</button>`:""}
+      ${fresh.length?`<button class="btn ${seen.length?"":"primary"}" id="goNew">Lista nueva de funciones</button>`:""}
     </div>
+    ${seen.length&&!due.length?`<p class="muted" style="margin:0;font-size:.88rem">No tienes nada pendiente hoy: lo que toca ya está repasado. Si quieres seguir, "Adelantar repaso" te pone las 10 listas que vencen antes.</p>`:""}
+    <div class="row" style="gap:8px"><button class="btn small" id="goQuick">Modo rápido</button><button class="btn small" id="goSim">Simulacro</button></div>
   </section>
+  ${dailyHtml()}
   <div class="kpis">
     <div class="kpi"><b>${coreSeen.length}<small class="muted" style="font-size:1rem"> / ${core.length}</small></b><span>funciones de bombero practicadas</span></div>
     <div class="kpi"><b>${coreMaster.length}</b><span>dominadas (caja 4+)</span></div>
@@ -382,11 +390,14 @@ function vInicio(el){
   q("#goDue",()=>startQueue(today.map(l=>l.id),"inicio"));
   q("#goMore",()=>startQueue(due.slice(0,10).map(l=>l.id),"inicio"));
   q("#goFunc",()=>startQueue(dueFunc.slice(0,cap||dueFunc.length).map(l=>l.id),"inicio"));
-  el.querySelectorAll("[data-ord]").forEach(b=>b.onclick=()=>{prog.order=b.dataset.ord;save();render()});
+  q("#goRest",()=>startQueue(dueRest.slice(0,cap||dueRest.length).map(l=>l.id),"inicio"));
+  el.querySelectorAll("[data-ord]").forEach(b=>b.onclick=()=>{prog.repOrder=b.dataset.ord;save();render()});
   el.querySelectorAll("[data-cap]").forEach(b=>b.onclick=()=>{prog.cap=+b.dataset.cap;save();render()});
   q("#goQuick",()=>go("rapido"));
   q("#goNew",()=>{const pool=freshExam.length?freshExam:fresh;go("prueba",{id:pool[Math.floor(Math.random()*pool.length)].id,from:"inicio"})});
   q("#goSim",()=>go("simulacro"));
+  q("#goAhead",()=>startQueue(ahead.slice(0,10).map(l=>l.id),"inicio"));
+  dailyBind(el);
 }
 const shortTitle=t=>t.replace(/^Procedimiento\s+operativo\s+(de\s+)?/i,"").replace(/^./,c=>c.toUpperCase());
 
@@ -511,17 +522,25 @@ function toastQueue(res){const avg=res.reduce((a,x)=>a+x.r,0)/res.length;const p
 let sim=null,timerId=null;
 function stopTimer(){clearInterval(timerId);timerId=null}
 function vSimulacro(el){
+  if(sim&&sim.real&&sim.phase==="run")return vRealRun(el);
+  if(sim&&sim.real&&sim.phase==="done")return vRealDone(el);
   if(sim&&sim.phase==="run")return vSimRun(el);
   if(sim&&sim.phase==="done")return vSimDone(el);
   const cfg=prog.simCfg||{codes:P.map(p=>p.code),cats:["funciones","medidas","pautas","anexo"],n:4,min:20};
   el.innerHTML=`
   <div class="hero stack"><div class="eyebrow">Bloque PROCOPs · 6 puntos</div><h2>Simulacro de examen</h2>
   <p class="muted" style="margin:0">Salen varias listas al azar, como en el examen ("funciones del BCBUP en el 1.03", "medidas de seguridad del 1.01"…). Escribes todas con el reloj corriendo y al final se corrige y se pasa a nota sobre 6.</p></div>
+  <div class="panel stack" style="border-left:6px solid var(--red)">
+    <div class="eyebrow">Recomendado · una vez por semana (sábado)</div>
+    <h3 style="font-size:1.4rem">Simulacro real: 60 minutos</h3>
+    <p class="muted" style="margin:0">Siempre: 4 funciones (1 punto cada una), 5 trenes de salida con su mando (0,5), 4 definiciones (0,5), 10 NIP (0,5), una pregunta de IVASPE sanitario (0,5) y una medida de seguridad o una pauta (0,75). Además, 1 a 3 preguntas al azar de cualquier parte de los PROCOPs o del PAM IF (0,5 cada una), distintas cada vez. Sale entre 7,25 y 8,25 puntos; la nota se da también sobre 10. El callejero (2 puntos) lo haces en tu app. Al empezar se descarga el PDF en blanco para hacerlo en papel si quieres, y al acabar, el corregido. Cada simulacro guardado entra en tu historial.</p>
+    <div class="row"><button class="btn primary" id="real">Empezar simulacro real nº ${(prog.sims||[]).reduce((a,x)=>Math.max(a,x.n||0),0)+1}</button></div>
+  </div>
   <div class="panel stack">
-    <div class="eyebrow">Recomendado</div>
+    <div class="eyebrow">Entre semana · miércoles</div>
     <h3 style="font-size:1.4rem">Examen tipo: 4 funciones + 1 lista extra + 4 definiciones + 10 NIP</h3>
     <p class="muted" style="margin:0">Como el apartado de funciones y el de NIP del examen real: 4 roles de bombero de 4 PROCOPs distintos (1 punto cada uno, repartido entre sus funciones), una lista extra al azar (medidas, pautas, riesgos, actuaciones o anexos; 1 punto), 4 definiciones (0,25 cada una) y 10 NIP (0,05 cada uno). 40 minutos, sobre 6,5.</p>
-    <div class="row"><button class="btn primary" id="tipo">Empezar examen tipo</button></div>
+    <div class="row"><button class="btn" id="tipo">Empezar examen tipo</button></div>
   </div>
   <div class="panel stack">
     <div class="eyebrow">Simulacro a medida</div>
@@ -537,6 +556,9 @@ function vSimulacro(el){
   Object.entries(CAT).forEach(([k,v])=>{if(L.some(l=>l.category===k))tog(sk,cfg.cats,k,v)});
   const getPool=()=>L.filter(l=>visible(l)&&cfg.codes.includes(l.code)&&cfg.cats.includes(l.category)&&l.items.length>=2);
   const pool=()=>{el.querySelector("#pool").textContent=getPool().length+" listas posibles"};pool();
+  el.querySelector("#real").onclick=startReal;
+  el.insertAdjacentHTML("beforeend",historyHtml());historyBind(el);
+  loadPdf().catch(()=>{});
   el.querySelector("#tipo").onclick=()=>{
     const picks=[],used=new Set();
     const usedF=new Set();
@@ -1275,6 +1297,272 @@ function vDefs(el){
       html+=`<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b>${esc(d.term)}</b>: ${esc(d.def)}</div>`});
     rows.innerHTML=html||'<p class="muted">Sin resultados.</p>'};
   dq.oninput=()=>{df.q=dq.value;draw()};draw();
+}
+
+/* ---------- bloque rápido diario (definiciones, NIP, tablas) ---------- */
+const DAILY={1:[["defs","Definiciones · del PROCOP de tu vuelta",15,"t2d"],["nip","NIP · riesgo → NIP",10,"r2n"]],
+ 2:[["tren","Tren de salida y mando",10],["zonas","Zonas Devesa",10]],
+ 3:[["defs","Definiciones · del PROCOP de tu vuelta",15,"t2d"],["nip","NIP · NIP → riesgo",10,"n2r"]],
+ 4:[["tren","Tren de salida y mando",10],["defs","Definiciones · todas mezcladas",15,"t2d","proc"]],
+ 5:[["defs","Definiciones · del PROCOP de tu vuelta",15,"t2d"],["zonas","Zonas Devesa",10]],
+ 6:[],0:[]};
+function dailyDone(kind){
+  const t0=new Date();t0.setHours(0,0,0,0);const T=t0.getTime();
+  const cnt=(obj,pre)=>Object.entries(obj||{}).filter(([k,v])=>(!pre||pre.some(p=>k.startsWith(p)))&&v&&v.last>=T).length;
+  if(kind==="defs")return cnt(prog.defs);
+  if(kind==="nip")return cnt(prog.mmpp,["mm:r2n:","mm:n2r:"]);
+  if(kind==="tren")return cnt(prog.tab,["tren:","mando:"]);
+  if(kind==="zonas")return cnt(prog.tab,["lk:PAM IF:"]);
+  return 0;
+}
+function dailyGo(t){
+  const [kind,,,mode,scope]=t;
+  if(kind==="defs"){df.mode=mode||"t2d";if(scope)df.scope=scope;df.cur=null;df.phase="ask";go("defs")}
+  else if(kind==="nip"){mm.mode=mode||"r2n";mm.cur=null;mm.phase="ask";go("mmpp")}
+  else if(kind==="tren"){tb.deck="tren";tb.cur=null;tb.phase="ask";go("tablas")}
+  else if(kind==="zonas"){tb.deck="lk:PAM IF";tb.cur=null;tb.phase="ask";go("tablas")}
+}
+function dailyHtml(){
+  const d=new Date().getDay(),tasks=DAILY[d]||[];
+  if(d===6)return`<section class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.3rem">Bloque rápido de hoy</h3><span class="eyebrow">Sábado</span></div><p style="margin:0">Hoy toca <b>simulacro real</b> en vez del bloque rápido.</p><div class="row"><button class="btn" id="dgSim">Ir al simulacro</button></div></section>`;
+  if(!tasks.length)return`<section class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.3rem">Bloque rápido de hoy</h3><span class="eyebrow">Domingo</span></div><p style="margin:0" class="muted">Descanso del bloque rápido. Si te apetece, unas definiciones o NIP sueltos.</p></section>`;
+  return`<section class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.3rem">Bloque rápido de hoy</h3><span class="eyebrow">≈ 20 min · aparte del repaso</span></div>
+  ${tasks.map((t,i)=>{const n=Math.min(dailyDone(t[0]),t[2]),ok=n>=t[2];return`<div class="row" style="gap:12px;flex-wrap:nowrap"><div style="flex:1;min-width:0"><div style="font-weight:600">${esc(t[1])}</div><div class="meter" style="margin-top:6px"><i class="${ok?"m-ok":"m-mid"}" style="width:${(100*n/t[2]).toFixed(0)}%"></i></div></div><span class="mono" style="min-width:4.5ch;text-align:right">${n}/${t[2]}</span><button class="btn small${ok?"":" primary"}" data-dg="${i}">${ok?"Hecho":"Ir"}</button></div>`}).join("")}
+  <p class="muted" style="margin:0;font-size:.85rem">Las definiciones del PROCOP de tu vuelta: dentro de Definiciones, filtra por ese PROCOP.</p></section>`;
+}
+function dailyBind(el){
+  const tasks=DAILY[new Date().getDay()]||[];
+  el.querySelectorAll("[data-dg]").forEach(b=>b.onclick=()=>dailyGo(tasks[+b.dataset.dg]));
+  const s=el.querySelector("#dgSim");if(s)s.onclick=()=>go("simulacro");
+}
+
+/* ---------- PDF ---------- */
+let jsPDFp=null;
+function loadPdf(){if(window.jspdf)return Promise.resolve(window.jspdf.jsPDF);if(jsPDFp)return jsPDFp;
+  jsPDFp=new Promise((ok,ko)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";s.onload=()=>ok(window.jspdf.jsPDF);s.onerror=()=>{jsPDFp=null;ko(new Error("No se ha podido cargar el generador de PDF. Revisa la conexión."))};document.head.appendChild(s)});return jsPDFp}
+const pdfT=s=>String(s==null?"":s).replace(/[→⇒]/g,"->").replace(/[←]/g,"<-").replace(/≥/g,">=").replace(/≤/g,"<=").replace(/[–—]/g,"-").replace(/[“”«»]/g,'"').replace(/[‘’]/g,"'").replace(/•/g,"-").replace(/…/g,"...").replace(/✓/g,"OK").replace(/✗/g,"X").replace(/[^\x00-\xFF]/g,"");
+const fmtN=x=>(Math.round(x*100)/100).toLocaleString("es-ES",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDate=t=>new Date(t).toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+async function savePdf(doc,filename){
+  const blob=doc.output("blob");
+  try{if(window.claude&&window.claude.use){const d=await window.claude.use("downloads");if(d){await d.save({filename,data:blob});return true}}}
+  catch(e){if(e&&e.code==="declined")return false}
+  doc.save(filename);return true;
+}
+function pdfDoc(J,title,subtitle,sub2){
+  const doc=new J({unit:"mm",format:"a4"});const W=210,H=297,M=18;
+  const RED=[193,18,31],INK=[22,25,31],MUT=[110,116,128];
+  const deco=()=>{ // marca de agua y firma en cada página
+    doc.setFont("helvetica","bold");doc.setFontSize(96);doc.setTextColor(244,245,247);
+    doc.text("AYTO VLC",W/2+8,H/2+30,{align:"center",angle:35});
+    doc.setFont("helvetica","italic");doc.setFontSize(8.5);doc.setTextColor(...MUT);doc.text("TimThibodeau",W-M,10,{align:"right"});
+  };
+  deco();
+  let y=24;
+  doc.setDrawColor(...RED);doc.setLineWidth(1.2);doc.line(M,y-8,M+18,y-8);
+  doc.setFont("helvetica","bold");doc.setFontSize(18);doc.setTextColor(...INK);
+  const tl=doc.splitTextToSize(pdfT(title),W-2*M);doc.text(tl,M,y);y+=tl.length*7.5;
+  doc.setFont("helvetica","normal");doc.setFontSize(11);doc.setTextColor(...MUT);doc.text(pdfT(subtitle),M,y);y+=6;
+  if(sub2){doc.setFontSize(10.5);doc.setTextColor(...INK);const s2=doc.splitTextToSize(pdfT(sub2),W-2*M);doc.text(s2,M,y);y+=s2.length*5}
+  doc.setDrawColor(220,222,228);doc.setLineWidth(.3);doc.line(M,y+1,W-M,y+1);y+=8;
+  const api={doc,W,H,M,RED,INK,MUT,BLUE:[31,79,180],GREEN:[31,122,69],y,
+    need(h){if(api.y+h>H-18){doc.addPage();deco();api.y=20}},
+    text(t,{size=10.5,style="normal",color=INK,indent=0,gap=1.2,lh=4.6}={}){doc.setFont("helvetica",style);doc.setFontSize(size);doc.setTextColor(...color);
+      const ls=doc.splitTextToSize(pdfT(t),W-2*M-indent);ls.forEach(l=>{api.need(lh);doc.text(l,M+indent,api.y);api.y+=lh});api.y+=gap},
+    mark(tag,tagColor,t,color){doc.setFont("helvetica","normal");doc.setFontSize(10);const ls=doc.splitTextToSize(pdfT(t),W-2*M-17);
+      ls.forEach((l,k)=>{api.need(4.6);if(!k){doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...tagColor);doc.text(tag,M+2,api.y);doc.setFont("helvetica","normal");doc.setFontSize(10)}
+        doc.setTextColor(...color);doc.text(l,M+17,api.y);api.y+=4.6});api.y+=1},
+    lines(n,indent=0){doc.setDrawColor(200,203,210);doc.setLineWidth(.2);doc.setLineDashPattern([.6,1.2],0);for(let i=0;i<n;i++){api.need(8);api.y+=7;doc.line(M+indent,api.y,W-M,api.y)}doc.setLineDashPattern([],0);api.y+=4},
+    finish(){const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(...MUT);
+      doc.text("PROCOP a Puntos",M,H-9);doc.text(`Página ${i} de ${n}`,W/2,H-9,{align:"center"})}}};
+  return api;
+}
+
+/* ---------- simulacro real (60 min) ---------- */
+const REAL_SECS=[["Funciones","funciones"],["Pautas de trabajo","pautas"],["Medidas de seguridad","medidas"],["Movilización y mando","tren"],["Comunicaciones","com"],["Anexo","anexo"],["Definiciones","defs"],["MMPP","nip"],["IVASPE sanitario","san"]];
+const isP=l=>/^\d\.\d\d$/.test(l.code);
+const secOf=l=>/esc-|comunicaciones|esquema|5\.01/.test(l.id)?"Comunicaciones":l.code==="PAM IF"?"PAM IF":({medidas:"Medidas de seguridad",pautas:"Pautas de trabajo",anexo:"Anexo",riesgos:"Riesgos",actuaciones:"Actuaciones",zonas:"Zonas",equipamiento:"Equipamiento",recursos:"Recursos",otros:"Otros"})[l.category]||"Otros";
+function realBuild(){
+  const qs=[],used=new Set(),usedF=new Set(),take=(arr,n)=>shuffle(arr.slice()).slice(0,n);
+  for(const l of shuffle(L.filter(l=>nucleo(l)&&l.items.length>=2))){if(qs.length>=4)break;const f=famOf(l);if(!used.has(l.code)&&!usedF.has(f)){qs.push({t:"list",id:l.id,sec:"Funciones",val:1});used.add(l.code);usedF.add(f)}}
+  const one=(sec,val,f)=>{const c=take(L.filter(l=>f(l)&&l.items.length>=3&&l.items.length<=12&&!qs.some(q=>q.id===l.id)),1)[0];if(c)qs.push({t:"list",id:c.id,sec,val})};
+  // garantizada: una medida de seguridad o una pauta (al azar)
+  if(Math.random()<.5)one("Medidas de seguridad",.75,l=>isP(l)&&l.category==="medidas");
+  else one("Pautas de trabajo",.75,l=>isP(l)&&l.category==="pautas"&&l.who!=="mando");
+  // el resto, al azar entre casi cualquier lista: normalmente 1 o 2, alguna vez 3
+  const nExtra=(r=>r<.4?1:r<.88?2:3)(Math.random());
+  const pool=L.filter(l=>(isP(l)||l.code==="PAM IF")&&l.category!=="funciones"&&l.category!=="definiciones"&&(l.category!=="otros"||EXAM[l.id])&&l.who!=="mando"&&!(l.role&&l.category==="anexo")
+    &&!/glosario|abreviaturas|ficha-resumen|anexo1-|ficha-material|parques|difusion|normativa|ambito|exclusiones|telefon|correos|directorio|kit|apicultores|contrata/.test(l.id)
+    &&l.items.length>=2&&l.items.length<=12&&!qs.some(q=>q.id===l.id));
+  for(const c of shuffle(pool)){if(qs.filter(q=>q.extra).length>=nExtra)break;if(qs.some(q=>q.id===c.id))continue;qs.push({t:"list",id:c.id,sec:secOf(c),val:.5,extra:true})}
+  const movOk=MOV.map((r,i)=>i).filter(i=>MOV[i][4]&&!isMulti(MOV[i]));
+  qs.push({t:"tren",rows:take(movOk,5),sec:"Movilización y mando",val:.5});
+  if(!DEFS.length)buildDefs();
+  qs.push({t:"defs",keys:take(DEFS.filter(d=>isProc(d.code)),4).map(d=>d.key),sec:"Definiciones",val:.5});
+  qs.push({t:"nip",nums:take(MM_NIP.map(x=>x[0]),10),sec:"MMPP",val:.5});
+  one("IVASPE sanitario",.5,l=>l.code==="SAN"&&/actuaciones|riesgos|pautas|definiciones|medidas/.test(l.category)&&l.items.length<=10);
+  return qs;
+}
+const qVal=q=>q.val;
+const qTotal=qs=>qs.reduce((a,q)=>a+q.val,0);
+function qGot(q,g){
+  if(q.t==="list"){const L_=BYID[q.id].items.length;return q.val*g.filter(x=>x.hit).length/L_}
+  const per=q.val/g.length;return per*g.filter(Boolean).length;
+}
+function realGrade(s){
+  s.g=s.qs.map((q,i)=>{const a=s.ans[i];
+    if(q.t==="list")return autoGrade(BYID[q.id],a||"").map(x=>({hit:x.hit}));
+    if(q.t==="tren")return q.rows.map((ri,k)=>{const x=(a||{})[k]||{};return !!x.tren&&trenDiff(x.tren,MOV[ri][3]).ok&&x.lvl===MOV[ri][4]});
+    if(q.t==="defs")return q.keys.map(k=>{const d=DEFS.find(z=>z.key===k),t=(a||{})[k]||"";if(!d||!t.trim())return false;const kws=d.kw.filter(w=>!termWords(d.term).some(z=>norm(w).startsWith(z.slice(0,5))));const toks=tokens(t);return kws.length>0&&kws.filter(w=>kwHit(w,toks)).length/kws.length>=.5});
+    if(q.t==="nip")return q.nums.map(()=>false);
+  });
+}
+function qHead(q,i){const l=q.id?BYID[q.id]:null;return{num:i+1,sec:q.sec,val:q.val,title:l?l.title:q.t==="tren"?"Indica el tren de salida y el nivel de mando mínimo":q.t==="defs"?"Define los siguientes términos":"Indica qué peligro representa cada NIP",code:l?l.code:""}}
+const valTxt=v=>v.toLocaleString("es-ES",{maximumFractionDigits:2})+(v===1?" punto":" puntos");
+
+function vRealRun(el){
+  const s=sim;
+  el.innerHTML=`<div class="row" style="justify-content:space-between"><span class="eyebrow">Simulacro real nº ${s.n} · 60 min · ${fmtN(qTotal(s.qs))} puntos + callejero</span><button class="btn small" id="rpdf">PDF en blanco</button></div>
+  <span class="timer" id="tm" style="position:fixed;z-index:6;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 2px 10px rgba(0,0,0,.25)">--:--</span>
+  ${s.qs.map((q,i)=>{const h=qHead(q,i);let body="";
+    if(q.t==="list")body=`<textarea data-q="${i}" style="min-height:140px" placeholder="Un punto por línea">${esc(s.ans[i]||"")}</textarea>`;
+    else if(q.t==="tren")body=q.rows.map((ri,k)=>{const r=MOV[ri],x=(s.ans[i]||{})[k]||{};return`<div class="stack" style="gap:6px;border-top:1px solid var(--line);padding-top:8px"><b>${esc(movName(r))}</b><div class="row" style="flex-wrap:nowrap;gap:8px"><input class="simnip" data-tq="${i}" data-tk="${k}" style="font-family:var(--f-mono);text-transform:uppercase" placeholder="Tren de salida" autocomplete="off" value="${esc(x.tren||"")}"><select data-lq="${i}" data-lk="${k}" style="min-width:5.5em"><option value="">Mando</option>${NIVELES.map(n=>`<option${x.lvl===n?" selected":""}>${n}</option>`).join("")}</select></div></div>`}).join("");
+    else if(q.t==="defs")body=q.keys.map(k=>{const d=DEFS.find(z=>z.key===k);return`<div class="stack" style="gap:6px"><div class="row"><span class="plate">${esc(d.code)}</span><b>${esc(d.term)}</b></div><textarea data-dq="${i}" data-dk="${esc(k)}" style="min-height:70px">${esc(((s.ans[i]||{})[k])||"")}</textarea></div>`}).join("");
+    else body=q.nums.map(n=>`<div class="row" style="gap:10px;flex-wrap:nowrap"><span class="plate" style="min-width:4.6ch;justify-content:center;font-size:1rem">${n}</span><input class="simnip" data-nq="${i}" data-nn="${n}" autocomplete="off" value="${esc(((s.ans[i]||{})[n])||"")}"></div>`).join("");
+    return`<div class="panel stack"><div class="row" style="justify-content:space-between"><div class="row"><b class="mono">${h.num}.</b><span class="tag">${esc(h.sec)}</span>${h.code?`<span class="plate">PROCOP ${esc(h.code)}</span>`:""}</div><b class="mono">${valTxt(h.val)}</b></div><h3 style="font-size:1.35rem">${esc(h.title)}</h3>${body}</div>`}).join("")}
+  <div class="row"><button class="btn primary" id="end">Entregar</button><button class="btn" id="paper">Lo he hecho en papel: corregir</button><button class="btn" id="abort">Abandonar</button></div>`;
+  const obj=i=>(s.ans[i]=s.ans[i]&&typeof s.ans[i]==="object"?s.ans[i]:{});
+  el.querySelectorAll("[data-q]").forEach(t=>t.oninput=()=>{s.ans[+t.dataset.q]=t.value});
+  el.querySelectorAll("[data-tq]").forEach(t=>t.oninput=()=>{const o=obj(+t.dataset.tq);(o[t.dataset.tk]=o[t.dataset.tk]||{}).tren=t.value});
+  el.querySelectorAll("[data-lq]").forEach(t=>t.onchange=()=>{const o=obj(+t.dataset.lq);(o[t.dataset.lk]=o[t.dataset.lk]||{}).lvl=t.value});
+  el.querySelectorAll("[data-dq]").forEach(t=>t.oninput=()=>{obj(+t.dataset.dq)[t.dataset.dk]=t.value});
+  el.querySelectorAll("[data-nq]").forEach(t=>t.oninput=()=>{obj(+t.dataset.nq)[t.dataset.nn]=t.value});
+  const tm=el.querySelector("#tm");
+  const tick=()=>{const left=Math.max(0,s.end-Date.now());const m=Math.floor(left/60000),sec=Math.floor(left%60000/1000);tm.textContent=String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");tm.classList.toggle("low",left<60000);if(left<=0){stopTimer();realFinish()}};
+  tick();timerId=setInterval(tick,1000);
+  el.querySelector("#end").onclick=realFinish;
+  el.querySelector("#paper").onclick=()=>{s.paper=true;realFinish()};
+  el.querySelector("#abort").onclick=()=>{sim=null;stopTimer();render()};
+  el.querySelector("#rpdf").onclick=()=>realPdf(s,false);
+}
+function realFinish(){stopTimer();const s=sim;s.phase="done";s.used=Math.max(1,Math.round((Date.now()-s.start)/60000));realGrade(s);render();window.scrollTo({top:0})}
+function vRealDone(el){
+  const s=sim,total=qTotal(s.qs);
+  const score=()=>s.qs.reduce((a,q,i)=>a+qGot(q,s.g[i]),0);
+  el.innerHTML=`<div class="hero stack"><div class="eyebrow">Simulacro real nº ${s.n} corregido · ${s.used} min</div><div class="score" id="nota"></div>
+  <p class="muted" style="margin:0">${s.paper?"Hecho en papel: con tu hoja delante, toca \"Lo tenía\" en cada punto que hayas puesto. Lo que no marques cuenta como fallo.":"La corrección automática es orientativa: revisa cada pregunta y toca \"Lo tenía\" / \"No lo tenía\" donde haga falta (los NIP los marcas tú)."} Después guarda: entra en tu historial y en el repaso.</p>
+  <div class="row"><button class="btn primary" id="sv">${s.saved?"Guardado":"Guardar en historial y repaso"}</button><button class="btn" id="pdfc">PDF corregido</button><button class="btn" id="nw">Volver</button></div></div><div class="stack" id="qs"></div>`;
+  const upd=()=>{const sc=score();el.querySelector("#nota").innerHTML=`${fmtN(sc)}<small> / ${fmtN(total)}</small> <small style="font-size:1rem">· ${fmtN(sc/total*10)} sobre 10</small>`};upd();
+  const box=el.querySelector("#qs");
+  s.qs.forEach((q,i)=>{const h=qHead(q,i),d=document.createElement("div");d.className="stack";box.appendChild(d);
+    const draw=()=>{const g=s.g[i];let body="";
+      if(q.t==="list"){const l=BYID[q.id];body=`${s.paper?"":`<div class="note" style="white-space:pre-wrap">${esc(s.ans[i]||"(en blanco)")}</div>`}<ol class="items">${l.items.map((it,k)=>`<li class="${g[k].hit?"hit":"miss"}"><div class="it-txt">${hilite(it.text,it.keywords||[])}<div class="it-actions"><button class="toggle-it" data-k="${k}">${g[k].hit?"No lo tenía":"Lo tenía"}</button></div></div></li>`).join("")}</ol>`}
+      else if(q.t==="tren")body=q.rows.map((ri,k)=>{const r=MOV[ri],x=(s.ans[i]||{})[k]||{};return`<div class="mm-fb ${g[k]?"good":"bad"}"><b>${esc(movName(r))}</b><div class="mono">${esc(r[3])} · ${r[4]}</div>${s.paper?"":`<div class="muted">Tú: ${esc(x.tren||"—")} · ${esc(x.lvl||"—")}</div>`}<div class="it-actions"><button class="toggle-it" data-k="${k}">${g[k]?"No lo tenía":"Lo tenía"}</button></div></div>`}).join("");
+      else if(q.t==="defs")body=q.keys.map((k2,k)=>{const x=DEFS.find(z=>z.key===k2);return`<div class="mm-fb ${g[k]?"good":"bad"}"><b>${esc(x.term)}</b>${s.paper?"":`<div class="muted" style="white-space:pre-wrap">Tú: ${esc(((s.ans[i]||{})[k2])||"(en blanco)")}</div>`}<div>${hilite(x.def,x.kw)}</div><div class="it-actions"><button class="toggle-it" data-k="${k}">${g[k]?"No lo tenía":"Lo tenía"}</button></div></div>`}).join("");
+      else{const NT=Object.fromEntries(MM_NIP.map(z=>[z[0],z[1].replace("¹","")]));body=q.nums.map((n,k)=>`<div class="mm-fb ${g[k]?"good":"bad"}"><div class="row" style="gap:10px"><span class="plate">${n}</span>${s.paper?"":`<span class="muted">Tú: ${esc(((s.ans[i]||{})[n])||"(en blanco)")}</span>`}</div><div>${esc(NT[n])}</div><div class="it-actions"><button class="toggle-it" data-k="${k}">${g[k]?"No lo tenía":"Lo tenía"}</button></div></div>`).join("")}
+      d.innerHTML=`<div class="row" style="justify-content:space-between"><div class="row"><b class="mono">${h.num}.</b><span class="tag">${esc(h.sec)}</span>${h.code?`<span class="plate">${esc(h.code)}</span>`:""}<b>${esc(h.title)}</b></div><b class="mono">${fmtN(qGot(q,g))} / ${valTxt(h.val)}</b></div>${body}`;
+      d.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{const k=+b.dataset.k;if(q.t==="list")g[k].hit=!g[k].hit;else g[k]=!g[k];draw();upd()})};
+    draw()});
+  el.querySelector("#sv").onclick=e=>{if(s.saved)return;realSave(s);e.target.textContent="Guardado";e.target.disabled=true};
+  el.querySelector("#pdfc").onclick=()=>realPdf(s,true);
+  el.querySelector("#nw").onclick=()=>{sim=null;render()};
+}
+function realSave(s){
+  s.qs.forEach((q,i)=>{const g=s.g[i];
+    if(q.t==="list")grade(q.id,g.filter(x=>x.hit).length/g.length,g.map((x,k)=>x.hit?-1:k).filter(k=>k>=0));
+    else if(q.t==="defs")q.keys.forEach((k,j)=>{const key="t2d:"+k,o=prog.defs[key]||{ok:0,bad:0};g[j]?o.ok++:o.bad++;o.last=Date.now();prog.defs[key]=o});
+    else if(q.t==="nip")q.nums.forEach((n,j)=>{const key="mm:n2r:"+n,o=prog.mmpp[key]||{box:0};o.box=g[j]?Math.min(6,(o.box||0)+1):1;o.due=Date.now()+(g[j]?INTERVALS[o.box]*DAY-3600000:600000);o.last=Date.now();prog.mmpp[key]=o});
+    else if(q.t==="tren")q.rows.forEach((ri,j)=>{const key="tren:"+ri,o=prog.tab[key]||{ok:0,bad:0};g[j]?o.ok++:o.bad++;o.last=Date.now();prog.tab[key]=o});
+  });
+  const secs={};s.qs.forEach((q,i)=>{const x=secs[q.sec]=secs[q.sec]||[0,0];x[0]+=qGot(q,s.g[i]);x[1]+=q.val});
+  const score=s.qs.reduce((a,q,i)=>a+qGot(q,s.g[i]),0);
+  prog.sims=prog.sims||[];
+  prog.sims.push({id:s.start,last:Date.now(),n:s.n,date:s.start,used:s.used,paper:!!s.paper,score:Math.round(score*1000)/1000,total:qTotal(s.qs),secs,qs:s.qs,ans:s.ans,g:s.g});
+  s.saved=true;save();
+}
+async function realPdf(s,corrected){
+  let J;try{J=await loadPdf()}catch(e){toastMsg(e.message);return}
+  const total=qTotal(s.qs);
+  const score=corrected?s.qs.reduce((a,q,i)=>a+qGot(q,s.g[i]),0):0;
+  const P_=pdfDoc(J,`Simulacro Ayto Valencia: PROCOP A PUNTOS ${s.n}`,fmtDate(s.start),
+    corrected?`Corregido${s.paper?" (hecho en papel)":""} · Nota: ${fmtN(score)} / ${fmtN(total)} (${fmtN(score/total*10)} sobre 10) · Tiempo: ${s.used} min · Callejero (2 puntos) aparte`
+             :`60 minutos · ${fmtN(total)} puntos + callejero (2 puntos, aparte) · Escribe un punto por línea`);
+  const {BLUE,GREEN,RED,MUT}=P_;
+  s.qs.forEach((q,i)=>{const h=qHead(q,i),g=corrected?s.g[i]:null;
+    P_.need(18);
+    P_.text(`${h.num}. ${h.sec}${h.code?" · PROCOP "+h.code:""}   (${valTxt(h.val)}${corrected?" · obtenido "+fmtN(qGot(q,g)):""})`,{size:9.5,style:"bold",color:MUT,gap:.5,lh:4.4});
+    P_.text(h.title,{size:12.5,style:"bold",gap:1.5,lh:5.4});
+    if(q.t==="list"){
+      if(!corrected){P_.lines(8);return}
+      if(!s.paper){P_.text("Tu respuesta:",{size:9,style:"bold",color:MUT,gap:.3});
+      P_.text((s.ans[i]||"(en blanco)").trim()||"(en blanco)",{size:10,gap:2});}
+      P_.text("Corrección:",{size:9,style:"bold",color:BLUE,gap:.3});
+      BYID[q.id].items.forEach((it,k)=>P_.mark(g[k].hit?"BIEN":"FALTA",g[k].hit?GREEN:RED,it.text,BLUE));
+      P_.y+=4;return}
+    if(q.t==="tren"){q.rows.forEach((ri,k)=>{const r=MOV[ri];P_.text(`${k+1}) ${movName(r)}`,{size:10.5,style:"bold",gap:.5});
+        if(!corrected){P_.text("Tren: ______________________________________________     Mando: ________",{size:10,color:MUT,gap:3});return}
+        const x=(s.ans[i]||{})[k]||{};if(!s.paper)P_.text(`Tú: ${x.tren||"-"} · ${x.lvl||"-"}`,{size:10,gap:.3});
+        P_.mark(g[k]?"BIEN":"MAL",g[k]?GREEN:RED,`${r[3]} · Mando: ${r[4]}`,BLUE);P_.y+=1.5});P_.y+=3;return}
+    if(q.t==="defs"){q.keys.forEach((k2,k)=>{const d=DEFS.find(z=>z.key===k2);P_.text(`${d.term} (${d.code})`,{size:10.5,style:"bold",gap:.5});
+        if(!corrected){P_.lines(3);return}
+        if(!s.paper)P_.text(`Tú: ${((s.ans[i]||{})[k2]||"(en blanco)")}`,{size:10,gap:.3});P_.mark(g[k]?"BIEN":"REVISAR",g[k]?GREEN:RED,d.def,BLUE);P_.y+=1.5});P_.y+=2;return}
+    const NT=Object.fromEntries(MM_NIP.map(z=>[z[0],z[1].replace("¹","")]));
+    q.nums.forEach((n,k)=>{if(!corrected){P_.text(`NIP ${n}:  ________________________________________________________`,{size:10.5,gap:2.2});return}
+      P_.text(s.paper?`NIP ${n}`:`NIP ${n} · tú: ${((s.ans[i]||{})[n])||"(en blanco)"}`,{size:10,gap:.3});P_.mark(g[k]?"BIEN":"MAL",g[k]?GREEN:RED,NT[n],BLUE);P_.y+=1});
+    P_.y+=3;
+  });
+  P_.finish();
+  await savePdf(P_.doc,`Simulacro PROCOP A PUNTOS ${s.n}${corrected?" corregido":""}.pdf`);
+}
+async function historyPdf(){
+  let J;try{J=await loadPdf()}catch(e){toastMsg(e.message);return}
+  const S=(prog.sims||[]).slice().sort((a,b)=>a.n-b.n);
+  const P_=pdfDoc(J,"Simulacro Ayto Valencia: PROCOP A PUNTOS · Historial",fmtDate(Date.now()),`${S.length} simulacro${S.length===1?"":"s"} · nota media ${fmtN(S.reduce((a,x)=>a+x.score/x.total*10,0)/(S.length||1))} sobre 10`);
+  const {doc,M,W,BLUE,RED,MUT,INK}=P_;
+  // gráfico de evolución
+  if(S.length){P_.text("Evolución (nota sobre 10)",{size:12,style:"bold",gap:2});P_.need(62);
+    const x0=M+8,y0=P_.y,w=W-2*M-12,h=50;doc.setDrawColor(225,227,232);doc.setLineWidth(.2);
+    for(let v=0;v<=10;v+=2){const yy=y0+h-h*v/10;doc.line(x0,yy,x0+w,yy);doc.setFontSize(7.5);doc.setTextColor(...MUT);doc.text(String(v),x0-3,yy+1,{align:"right"})}
+    const px=k=>S.length===1?x0+w/2:x0+w*k/(S.length-1),py=v=>y0+h-h*Math.max(0,Math.min(10,v))/10;
+    doc.setDrawColor(...BLUE);doc.setLineWidth(.7);S.forEach((x,k)=>{if(k)doc.line(px(k-1),py(S[k-1].score/S[k-1].total*10),px(k),py(x.score/x.total*10))});
+    S.forEach((x,k)=>{doc.setFillColor(...BLUE);doc.circle(px(k),py(x.score/x.total*10),1,"F");doc.setFontSize(7.5);doc.setTextColor(...MUT);doc.text(String(x.n),px(k),y0+h+4,{align:"center"})});
+    P_.y=y0+h+10}
+  P_.text("Simulacros",{size:12,style:"bold",gap:1.5});
+  S.forEach(x=>P_.text(`Nº ${x.n} · ${new Date(x.date).toLocaleDateString("es-ES")} · ${fmtN(x.score)} / ${fmtN(x.total)} · ${fmtN(x.score/x.total*10)} sobre 10 · ${x.used} min`,{size:10,gap:.8}));
+  P_.y+=4;P_.text("Por apartado (media de acierto)",{size:12,style:"bold",gap:2});
+  secStats().forEach(([name,pct])=>{P_.need(8);doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(...INK);doc.text(pdfT(name),M,P_.y+3.5);
+    const bx=M+52,bw=W-2*M-70;doc.setFillColor(235,237,241);doc.rect(bx,P_.y,bw,4.5,"F");doc.setFillColor(...(pct<0.5?RED:pct<0.75?[214,160,0]:BLUE));doc.rect(bx,P_.y,bw*pct,4.5,"F");
+    doc.setTextColor(...MUT);doc.text(Math.round(pct*100)+" %",W-M,P_.y+3.5,{align:"right"});P_.y+=7.5});
+  P_.finish();
+  await savePdf(doc,"Historial simulacros PROCOP A PUNTOS.pdf");
+}
+function secStats(){const acc={};(prog.sims||[]).forEach(x=>Object.entries(x.secs||{}).forEach(([k,[a,b]])=>{const o=acc[k]=acc[k]||[0,0];o[0]+=a;o[1]+=b}));
+  return Object.keys(acc).map(n=>[n,acc[n][1]?acc[n][0]/acc[n][1]:0]).sort((a,b)=>a[1]-b[1])}
+function toastMsg(t){const p=document.createElement("div");p.className="panel";p.style.cssText="position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40";p.textContent=t;document.body.appendChild(p);setTimeout(()=>p.remove(),5000)}
+function historyHtml(){
+  const S=(prog.sims||[]).slice().sort((a,b)=>a.n-b.n);
+  if(!S.length)return`<div class="panel stack"><h3 style="font-size:1.35rem">Tu historial</h3><p class="muted" style="margin:0">Cuando guardes tu primer simulacro real, aquí verás tu evolución y en qué apartados fallas más.</p></div>`;
+  const w=600,h=140,pad=24,px=k=>S.length===1?w/2:pad+(w-2*pad)*k/(S.length-1),py=v=>h-pad/2-(h-pad)*v/10;
+  const pts=S.map((x,k)=>[px(k),py(x.score/x.total*10)]);
+  const svg=`<svg viewBox="0 0 ${w} ${h+16}" style="width:100%;max-width:100%;height:auto" role="img" aria-label="Evolución de la nota sobre 10">
+    ${[0,5,10].map(v=>`<line x1="${pad}" x2="${w-pad}" y1="${py(v)}" y2="${py(v)}" stroke="var(--line)" stroke-width="1"/><text x="4" y="${py(v)+4}" font-size="11" fill="var(--muted)">${v}</text>`).join("")}
+    <polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="var(--red)" stroke-width="2.5"/>
+    ${pts.map((p,k)=>`<circle cx="${p[0]}" cy="${p[1]}" r="${k===pts.length-1?5:3.5}" fill="var(--red)"/><text x="${p[0]}" y="${h+12}" font-size="11" text-anchor="middle" fill="var(--muted)">${S[k].n}</text>`).join("")}</svg>`;
+  return`<div class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.35rem">Tu historial</h3><button class="btn small" id="hpdf">PDF del historial</button></div>
+  ${svg}
+  <div class="eyebrow">Lo que más fallas (media de acierto por apartado)</div>
+  <div class="stack" style="gap:6px">${secStats().map(([n,p])=>`<div class="row" style="flex-wrap:nowrap;gap:10px"><span style="flex:0 0 11em;min-width:0">${esc(n)}</span><div class="meter" style="flex:1"><i class="${p<.5?"m-bad":p<.75?"m-mid":"m-ok"}" style="width:${Math.round(p*100)}%"></i></div><span class="mono" style="min-width:4ch;text-align:right">${Math.round(p*100)}%</span></div>`).join("")}</div>
+  <div class="eyebrow">Simulacros</div>
+  <div class="stack" style="gap:6px">${S.slice().reverse().map(x=>`<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:6px"><span><b>Nº ${x.n}</b> · ${new Date(x.date).toLocaleDateString("es-ES")} · <b>${fmtN(x.score/x.total*10)}</b> sobre 10 <span class="muted">(${fmtN(x.score)} / ${fmtN(x.total)})</span></span><button class="btn small" data-hp="${x.id}">PDF</button></div>`).join("")}</div></div>`;
+}
+function historyBind(el){
+  const b=el.querySelector("#hpdf");if(b)b.onclick=historyPdf;
+  el.querySelectorAll("[data-hp]").forEach(x=>x.onclick=()=>{const r=(prog.sims||[]).find(z=>String(z.id)===x.dataset.hp);if(r){if(!DEFS.length)buildDefs();realPdf({...r,start:r.date},true)}});
+}
+function startReal(){
+  const n=(prog.sims||[]).reduce((a,x)=>Math.max(a,x.n||0),0)+1;
+  sim={phase:"run",real:true,n,qs:realBuild(),ans:{},start:Date.now(),end:Date.now()+60*60000,min:60};
+  render();realPdf(sim,false);
 }
 
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
