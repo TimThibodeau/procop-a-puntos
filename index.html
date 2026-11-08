@@ -33,6 +33,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;line-height:1.1;margin:0;text-wrap:balance}
 .wrap{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 64px}
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--red);color:var(--red-ink)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--red)}
 .top .bar{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 0;display:flex;flex-direction:column;gap:6px}
 .brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .brand h1{font-size:1.6rem;text-transform:uppercase}
@@ -40,7 +41,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;line-
 .stripe{height:6px;background:repeating-linear-gradient(-45deg,var(--hivis) 0 10px,var(--red) 10px 20px)}
 nav{display:flex;flex-wrap:wrap;gap:0 2px}
 .ns{display:none}
-@media (max-width:560px){nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0}header.top nav button{padding:5px 1px 6px;font-size:.95rem;letter-spacing:0;text-transform:none;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.nl{display:none}.ns{display:inline}}
+@media (max-width:560px){nav{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0}header.top nav button{padding:5px 1px 6px;font-size:.88rem;letter-spacing:0;text-transform:none;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.nl{display:none}.ns{display:inline}}
 nav button{background:none;border:0;color:var(--red-ink);opacity:.75;font-family:var(--f-display);font-weight:600;font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;padding:5px 10px 6px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
 nav button[aria-current="true"]{opacity:1;border-bottom-color:var(--hivis)}
 nav button:focus-visible{outline:2px solid var(--hivis);outline-offset:-2px}
@@ -145,6 +146,46 @@ ol.items li.own .it-txt{font-weight:600}
 .pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.mid{background:color-mix(in srgb,var(--hivis) 30%,transparent);color:var(--fg)}.pill.miss{background:var(--bad-soft);color:var(--bad)}
 .chip.big{font-family:var(--f-display);font-weight:700;font-size:1.3rem;padding:8px 20px;min-width:3.2em}
 .chip.good{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}.chip.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.hrow{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.hrow.hdone{background:var(--ok-soft);border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+.hchk{flex:0 0 auto;width:34px;height:34px;border-radius:8px;border:2px solid var(--muted);background:var(--panel);color:#fff;font-size:1.2rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.hchk[aria-pressed="true"]{background:var(--ok);border-color:var(--ok)}
+.hchk:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.hmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.hdet{font-size:.92rem;overflow-wrap:anywhere}
+.hdone .hdet{color:var(--muted)}
+.ring{--p:0;flex:0 0 auto;width:74px;height:74px;border-radius:50%;background:conic-gradient(var(--ok) calc(var(--p)*1%),var(--sunk) 0);display:grid;place-items:center}
+.ring span{width:56px;height:56px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:1.15rem}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.wday{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;border-radius:6px}
+.wday.wtoday{background:var(--sunk)}
+.wbarv{width:60%;max-width:26px;height:64px;background:var(--sunk);border-radius:4px;display:flex;align-items:flex-end;overflow:hidden}
+.wbarv i{display:block;width:100%}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.tcard{border:1px solid var(--line);border-left:5px solid var(--line);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.tcard.tok{border-left-color:var(--ok)}.tcard.tmid{border-left-color:var(--hivis)}.tcard.tbad{border-left-color:var(--bad)}
+.medals{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.medal{display:flex;gap:8px;align-items:center;border:1px dashed var(--line);border-radius:6px;padding:8px;font-size:.88rem;color:var(--muted)}
+.medal span{font-size:1.2rem}
+.medal.on{border-style:solid;border-color:var(--hivis);color:var(--fg);background:color-mix(in srgb,var(--hivis) 14%,var(--panel))}
+.medal.on span{color:#c99a00}
+.cgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.chead{text-align:center;font-family:var(--f-mono);font-size:.75rem;color:var(--muted);padding-bottom:2px}
+.cday{min-height:64px;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:4px;display:flex;flex-direction:column;align-items:flex-start;gap:3px;cursor:pointer;min-width:0;overflow:hidden;text-align:left;color:var(--fg)}
+.cday.empty{border:0;background:none;cursor:default}
+.cday.cpast{background:var(--sunk)}
+.cday.ctoday{border:2px solid var(--red)}
+.cday.csel{outline:2px solid var(--fg);outline-offset:1px}
+.cday:focus-visible{outline:2px solid var(--red);outline-offset:1px}
+.cnum{font-family:var(--f-display);font-weight:700;font-size:1rem;line-height:1}
+.cpct{font-family:var(--f-mono);font-size:.68rem;padding:1px 4px;border-radius:3px;line-height:1.3}
+.cpct.none{color:var(--muted)}
+.cplan{font-family:var(--f-mono);font-size:.64rem;color:var(--muted);line-height:1.2;overflow-wrap:break-word;word-break:normal;hyphens:none}
+.cst{flex:0 0 1.6em;height:1.6em;border-radius:50%;display:grid;place-items:center;font-weight:700;border:1px solid var(--line)}
+.cst.ok{background:var(--ok);color:#fff;border-color:var(--ok)}.cst.ko{background:var(--bad-soft);color:var(--bad);border-color:var(--bad)}
+.themebtn{margin-left:auto;background:rgba(255,255,255,.16);color:var(--red-ink);border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:3px 10px;font:600 .8rem var(--f-body);cursor:pointer}
+.themebtn:focus-visible{outline:2px solid var(--hivis);outline-offset:2px}
+.brand .cloudbtn{margin-left:6px!important}
 .simnip{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-height:42px}
 @media (max-width:520px){.kpis{grid-template-columns:repeat(3,1fr)}.kpi b{font-size:1.6rem}.hero h2{font-size:1.45rem}}
 @media (prefers-reduced-motion:no-preference){.fade{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}}
@@ -152,9 +193,10 @@ ol.items li.own .it-txt{font-weight:600}
 
 <header class="top">
   <div class="bar">
-    <div class="brand"><h1>PROCOP a Puntos</h1><span>Bombers València · supuesto práctico</span><span class="sync" id="sync"></span></div>
+    <div class="brand"><h1>PROCOP a Puntos</h1><span>Bombers València · supuesto práctico</span><span class="sync" id="sync"></span><button class="themebtn" id="themeBtn" type="button">Auto</button></div>
     <nav id="nav" aria-label="Secciones">
-      <button data-v="inicio" aria-current="true">Inicio</button>
+      <button data-v="hoy" aria-current="true">Hoy</button>
+      <button data-v="inicio">Inicio</button>
       <button data-v="rapido">Rápido</button>
       <button data-v="banco"><span class="nl">Banco de listas</span><span class="ns">Banco</span></button>
       <button data-v="rol"><span class="nl">Por rol</span><span class="ns">Roles</span></button>
@@ -222,6 +264,14 @@ function save(){
 function mergeProg(r){let n=0;
   for(const sec of ["lists","facts","mmpp","quick","tab","defs"]){prog[sec]=prog[sec]||{};for(const [k,v] of Object.entries((r&&r[sec])||{})){const mine=prog[sec][k];if(!mine||(v.last||0)>(mine.last||0)){prog[sec][k]=v;n++}}}
   ["cap","repOrder","hideMando","hideN","simCfg"].forEach(k=>{if(prog[k]===undefined&&r&&r[k]!==undefined)prog[k]=r[k]});
+  if(r&&r.plan){const p=prog.plan=prog.plan||{},q=r.plan;p.ptr=p.ptr||{};p.since=p.since||{};p.log=p.log||{};
+    const qp=Object.assign({},q.ptr||{});if(!q.v2&&qp.procop!=null){const c=codeOf(OLD_PROCOP[qp.procop%OLD_PROCOP.length]);const ni=TRACKS.procop.items.findIndex(x=>codeOf(x)===c);qp.procop=ni<0?0:ni}
+    Object.entries(qp).forEach(([k,v])=>{if((p.ptr[k]||0)<v){p.ptr[k]=v;n++}});
+    Object.entries(q.since||{}).forEach(([k,v])=>{if((p.since[k]||0)<v)p.since[k]=v});
+    Object.entries(q.log||{}).forEach(([d,v])=>{const mine=p.log[d];if(!mine||(v.last||0)>(mine.last||0)){p.log[d]=v;n++}});
+    if(!p.exam&&q.exam)p.exam=q.exam;
+    p.vlog=p.vlog||[];(q.vlog||[]).forEach(z=>{if(!p.vlog.some(y=>y.i===z.i))p.vlog.push(z)});p.vlog.sort((a,b)=>a.i-b.i);
+    p.vstarts=Object.assign({},q.vstarts||{},p.vstarts||{});if(q.v2)p.v2=1}
   if(r&&Array.isArray(r.sims)){prog.sims=prog.sims||[];r.sims.forEach(x=>{if(!prog.sims.some(y=>y.id===x.id)){prog.sims.push(x);n++}})}
   try{localStorage.setItem("procop-prog",JSON.stringify(prog))}catch(e){}
   return n;
@@ -231,7 +281,7 @@ async function pushRemote(){
   if(!db||!uid)return;
   if(pushing){pendingPush=true;return}
   pushing=true;
-  try{await db.doc("data/users/"+uid+"/state/progress").set({lists:prog.lists,facts:prog.facts,mmpp:prog.mmpp,quick:prog.quick,tab:prog.tab,defs:prog.defs,sims:prog.sims||[],cap:prog.cap===undefined?25:prog.cap,order:prog.repOrder||"mezcla",hideMando:prog.hideMando===false?false:true,t:Date.now()});setSync("guardado en tu cuenta")}
+  try{await db.doc("data/users/"+uid+"/state/progress").set({lists:prog.lists,facts:prog.facts,mmpp:prog.mmpp,quick:prog.quick,tab:prog.tab,defs:prog.defs,sims:prog.sims||[],plan:prog.plan||{},cap:prog.cap===undefined?25:prog.cap,order:prog.repOrder||"mezcla",hideMando:prog.hideMando===false?false:true,t:Date.now()});setSync("guardado en tu cuenta")}
   catch(e){setSync("guardado solo en este dispositivo")}
   pushing=false;if(pendingPush){pendingPush=false;pushRemote()}
 }
@@ -255,6 +305,7 @@ async function initRemote(){
       for(const [k,v] of Object.entries(r.tab||{})){const mine=prog.tab[k];if(!mine||(v.last||0)>(mine.last||0))prog.tab[k]=v}
       for(const [k,v] of Object.entries(r.defs||{})){const mine=prog.defs[k];if(!mine||(v.last||0)>(mine.last||0))prog.defs[k]=v}
       if(Array.isArray(r.sims)){prog.sims=prog.sims||[];r.sims.forEach(x=>{if(!prog.sims.some(y=>y.id===x.id))prog.sims.push(x)})}
+      if(r.plan)mergeProg({plan:r.plan});
       if(prog.hideMando===undefined&&r.hideMando===false)prog.hideMando=false;
       if(prog.cap===undefined&&typeof r.cap==="number")prog.cap=r.cap;
       if(!prog.repOrder&&r.order&&r.order!=="func")prog.repOrder=r.order;
@@ -307,11 +358,11 @@ function hilite(text,kws){
 const acronym=list=>list.items.map(it=>{const s=it.text.replace(/^[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9]+/,"");return s.charAt(0).toUpperCase()}).join("");
 
 /* ---------- navegación ---------- */
-let view="inicio",ctx={};
+let view="hoy",ctx={};
 document.getElementById("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;go(b.dataset.v)});
 function go(v,c){view=v;ctx=c||{};document.querySelectorAll("#nav button").forEach(b=>b.setAttribute("aria-current",String(b.dataset.v===v||(v==="lista"&&b.dataset.v==="banco")||(v==="prueba"&&b.dataset.v===(ctx.from||"banco")))));stopTimer();render();window.scrollTo({top:0})}
 function render(){
-  const f={inicio:vInicio,banco:vBanco,lista:vLista,prueba:vPrueba,simulacro:vSimulacro,rapido:vRapido,rol:vRol,tablas:vTablas,defs:vDefs,mmpp:vMmpp,datos:vDatos,metodo:vMetodo}[view];
+  const f={hoy:vHoy,inicio:vInicio,banco:vBanco,lista:vLista,prueba:vPrueba,simulacro:vSimulacro,rapido:vRapido,rol:vRol,tablas:vTablas,defs:vDefs,mmpp:vMmpp,datos:vDatos,metodo:vMetodo}[view];
   app.innerHTML="";const el=document.createElement("div");el.className="stack fade";app.appendChild(el);f(el);
 }
 
@@ -1372,7 +1423,7 @@ function pdfDoc(J,title,subtitle,sub2){
     mark(tag,tagColor,t,color){doc.setFont("helvetica","normal");doc.setFontSize(10);const ls=doc.splitTextToSize(pdfT(t),W-2*M-17);
       ls.forEach((l,k)=>{api.need(4.6);if(!k){doc.setFont("helvetica","bold");doc.setFontSize(7.5);doc.setTextColor(...tagColor);doc.text(tag,M+2,api.y);doc.setFont("helvetica","normal");doc.setFontSize(10)}
         doc.setTextColor(...color);doc.text(l,M+17,api.y);api.y+=4.6});api.y+=1},
-    lines(n,indent=0){doc.setDrawColor(200,203,210);doc.setLineWidth(.2);doc.setLineDashPattern([.6,1.2],0);for(let i=0;i<n;i++){api.need(8);api.y+=7;doc.line(M+indent,api.y,W-M,api.y)}doc.setLineDashPattern([],0);api.y+=4},
+    lines(n,indent=0,step=9.5){doc.setDrawColor(200,203,210);doc.setLineWidth(.2);doc.setLineDashPattern([.6,1.2],0);for(let i=0;i<n;i++){api.need(step+1);api.y+=step;doc.line(M+indent,api.y,W-M,api.y)}doc.setLineDashPattern([],0);api.y+=4},
     finish(){const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont("helvetica","normal");doc.setFontSize(8.5);doc.setTextColor(...MUT);
       doc.text("PROCOP a Puntos",M,H-9);doc.text(`Página ${i} de ${n}`,W/2,H-9,{align:"center"})}}};
   return api;
@@ -1493,21 +1544,21 @@ async function realPdf(s,corrected){
     P_.text(`${h.num}. ${h.sec}${h.code?" · PROCOP "+h.code:""}   (${valTxt(h.val)}${corrected?" · obtenido "+fmtN(qGot(q,g)):""})`,{size:9.5,style:"bold",color:MUT,gap:.5,lh:4.4});
     P_.text(h.title,{size:12.5,style:"bold",gap:1.5,lh:5.4});
     if(q.t==="list"){
-      if(!corrected){P_.lines(8);return}
+      if(!corrected){P_.lines(18);return}
       if(!s.paper){P_.text("Tu respuesta:",{size:9,style:"bold",color:MUT,gap:.3});
       P_.text((s.ans[i]||"(en blanco)").trim()||"(en blanco)",{size:10,gap:2});}
       P_.text("Corrección:",{size:9,style:"bold",color:BLUE,gap:.3});
       BYID[q.id].items.forEach((it,k)=>P_.mark(g[k].hit?"BIEN":"FALTA",g[k].hit?GREEN:RED,it.text,BLUE));
       P_.y+=4;return}
     if(q.t==="tren"){q.rows.forEach((ri,k)=>{const r=MOV[ri];P_.text(`${k+1}) ${movName(r)}`,{size:10.5,style:"bold",gap:.5});
-        if(!corrected){P_.text("Tren: ______________________________________________     Mando: ________",{size:10,color:MUT,gap:3});return}
+        if(!corrected){P_.text("Tren de salida y nivel de mando:",{size:9,color:MUT,gap:0});P_.lines(2);return}
         const x=(s.ans[i]||{})[k]||{};if(!s.paper)P_.text(`Tú: ${x.tren||"-"} · ${x.lvl||"-"}`,{size:10,gap:.3});
         P_.mark(g[k]?"BIEN":"MAL",g[k]?GREEN:RED,`${r[3]} · Mando: ${r[4]}`,BLUE);P_.y+=1.5});P_.y+=3;return}
     if(q.t==="defs"){q.keys.forEach((k2,k)=>{const d=DEFS.find(z=>z.key===k2);P_.text(`${d.term} (${d.code})`,{size:10.5,style:"bold",gap:.5});
-        if(!corrected){P_.lines(3);return}
+        if(!corrected){P_.lines(4);return}
         if(!s.paper)P_.text(`Tú: ${((s.ans[i]||{})[k2]||"(en blanco)")}`,{size:10,gap:.3});P_.mark(g[k]?"BIEN":"REVISAR",g[k]?GREEN:RED,d.def,BLUE);P_.y+=1.5});P_.y+=2;return}
     const NT=Object.fromEntries(MM_NIP.map(z=>[z[0],z[1].replace("¹","")]));
-    q.nums.forEach((n,k)=>{if(!corrected){P_.text(`NIP ${n}:  ________________________________________________________`,{size:10.5,gap:2.2});return}
+    q.nums.forEach((n,k)=>{if(!corrected){P_.text(`NIP ${n}`,{size:11,style:"bold",gap:0});P_.lines(2);return}
       P_.text(s.paper?`NIP ${n}`:`NIP ${n} · tú: ${((s.ans[i]||{})[n])||"(en blanco)"}`,{size:10,gap:.3});P_.mark(g[k]?"BIEN":"MAL",g[k]?GREEN:RED,NT[n],BLUE);P_.y+=1});
     P_.y+=3;
   });
@@ -1565,10 +1616,228 @@ function startReal(){
   render();realPdf(sim,false);
 }
 
+/* ---------- Hoy: plan diario con arrastre, recompensas y estado del temario ---------- */
+const dk=d=>{const x=new Date(d);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0")};
+const TRACKS={
+  func:{name:"Funciones nuevas",time:"1 h",cyc:"Listas débiles (las rojas de Inicio)",items:[
+    "BC BUP/BUL: plantilla + 1.01, 1.02, 1.03","BC BUP/BUL: 1.05, 1.06, 1.07, 1.11, 3.01, 3.02, 3.03",
+    "Equipo 1: plantilla + 1.01, 1.02, 1.03, 1.05","Equipo 1: 1.06, 1.07, 3.01, 3.02, 3.03",
+    "Equipo 2: plantilla + 1.01, 1.03, 1.05","Equipo 2: 1.06, 1.07, 3.01, 3.03","Equipo AMB (8 listas)","Equipo VA (6 listas)",
+    "BC VA + BC UEX","BC BNL + BZ BNL","Equipo FSV + Equipos BUP B","Otros: Equipo PMA, AGT, zapadores forestal"]},
+  procop:{name:"PROCOP / planes",time:"45 min",loop:true,items:["1.01","1.02","1.11","1.03","1.05","1.06","1.07","3.01","3.02","3.03","3.08","5.01","PTE","PAM IF","PAM IN"]},
+  san:{name:"Sanitario IVASPE",time:"20 min",loop:true,loopFrom:9,items:[
+    "Leer cap. 1-3","Leer cap. 4 (RCP adulto y OVACE)","Leer cap. 5 (RCP infantil)","Leer cap. 6 (DESA)","Leer cap. 7-8 (ventilación, hemorragias)",
+    "Leer cap. 9 (trauma, X-ABCDE)","Leer cap. 10-11","Leer cap. 12 (quemaduras)","Leer cap. 13 (múltiples víctimas)",
+    "App: RCP adulto y DESA","App: RCP pediátrica y OVACE","App: hemorragias y torniquete","App: X-ABCDE e ITLS","App: quemaduras","App: triaje"]}
+};
+const CALLE_D=["Equipamientos + Museos + Sendas","Campanar","Norte","Oeste","Sur","Mezcla 1 + Saler","Mezcla 2"]; // por día de la semana (0=domingo)
+const XP={repaso:30,func:25,calle:15,psico:15,procop:25,rapido:15,san:10,sim:60,rev:20,ivaspe:20};
+const RANKS=[[0,"Aspirante"],[300,"Opositor"],[800,"Bombero en prácticas"],[1600,"Bombero"],[2800,"Bombero conductor"],[4500,"Cabo"],[7000,"Sargento"],[10000,"Suboficial"],[14000,"Oficial"]];
+const OLD_PROCOP=["3.01","3.02","3.03","3.08","5.01","5.01: esquemas de comunicaciones","1.11","1.01","1.02","1.03","1.05","1.06","1.07","PAM IF: grupos locales, niveles, situaciones","Vestuario: equipamientos 0 a 8","PTE: órganos, unidades básicas, situaciones","PAM IN: órganos, fases y situaciones","Medidas de seguridad: todas, a folio"];
+function plan(){const fresh=!prog.plan||!prog.plan.ptr;const p=prog.plan=prog.plan||{};p.ptr=p.ptr||{func:9,procop:3,san:9};if(fresh)p.v2=1;p.since=p.since||{};p.log=p.log||{};p.vlog=p.vlog||[];p.vstarts=p.vstarts||{};
+  if(!p.v2){ // nuevo orden de la vuelta: se mantiene el PROCOP por el que ibas
+    const it=TRACKS.procop.items,old=OLD_PROCOP[(p.ptr.procop||0)%OLD_PROCOP.length],c=codeOf(old);const ni=it.findIndex(x=>codeOf(x)===c);p.ptr.procop=ni<0?0:ni;p.v2=1}
+  return p}
+const PL=()=>TRACKS.procop.items.length;
+const dayDiff=(a,b)=>Math.round((day0(b)-day0(a))/864e5);
+function vueltaInfo(){
+  const p=plan(),L_=PL(),ptr=p.ptr.procop||0,n=Math.floor(ptr/L_)+1,doneN=ptr%L_;
+  const startOf=k=>p.vstarts[k]||((p.vlog.find(x=>Math.floor(x.i/L_)===k-1)||{}).t)||null;
+  const start=startOf(n)||Date.now();
+  const todayDone=!!(p.log[dk(Date.now())]||{}).procop;
+  let rem=L_-doneN,d=new Date();d.setHours(12,0,0,0);if(todayDone)d.setDate(d.getDate()+1);
+  while(rem>0){if(d.getDay()!==0&&d.getDay()!==6){rem--;if(!rem)break}d.setDate(d.getDate()+1)}
+  const hist=[];for(let k=1;k<n;k++){const s=startOf(k),e=(p.vlog.find(x=>x.i===k*L_-1)||{}).t;if(s&&e)hist.push({n:k,start:s,end:e,days:dayDiff(s,e)+1})}
+  return{n,doneN,L:L_,start,day:dayDiff(start,Date.now())+1,end:d.getTime(),totalPrev:dayDiff(start,d.getTime())+1,hist};
+}
+function vueltaHtml(){const v=vueltaInfo(),pct=Math.round(100*v.doneN/v.L),f=t=>new Date(t).toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"});
+  return`<section class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.3rem">Vuelta ${v.n} al temario</h3><span class="mono">día ${v.day} · ${pct}%</span></div>
+  <div class="meter" style="height:10px"><i class="m-ok" style="width:${pct}%"></i></div>
+  <div class="row" style="justify-content:space-between;font-size:.88rem"><span>${v.doneN} de ${v.L} hechos · empezó el ${f(v.start)}</span><span class="muted">Fin previsto: ${f(v.end)} (≈ ${v.totalPrev} días)</span></div>
+  <div class="row" style="gap:4px;flex-wrap:wrap">${TRACKS.procop.items.map((x,i)=>`<span class="tag" style="${i<v.doneN?"background:var(--ok-soft);border-color:var(--ok);color:var(--fg)":i===v.doneN?"border-color:var(--red);color:var(--red)":""}">${esc(x)}</span>`).join("")}</div>
+  ${v.hist.length?`<div class="eyebrow">Vueltas terminadas</div>${v.hist.slice().reverse().map(x=>`<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:4px"><span><b>Vuelta ${x.n}</b> · ${f(x.start)} → ${f(x.end)}</span><b>${x.days} días</b></div>`).join("")}`:""}</section>`}
+function trackItem(k,i){const t=TRACKS[k];if(i<t.items.length)return t.items[i];if(t.cyc)return t.cyc;const from=t.loopFrom||0,n=t.items.length-from;return t.items[from+((i-t.items.length)%n)]}
+const vuelta=i=>Math.floor(i/TRACKS.procop.items.length)+1;
+function blocksFor(dow){
+  if(dow===6)return["repaso","sim","rev","calle","psico"];
+  if(dow===0)return["repaso","calle","ivaspe"];
+  return["repaso","func","calle","psico","procop","rapido","san"];
+}
+function dayPct(key){const l=plan().log[key]||{},b=blocksFor(new Date(key+"T12:00").getDay());return b.filter(x=>l[x]).length/b.length}
+function autoChecks(){ // marca solos los bloques que la app puede comprobar
+  const p=plan(),k=dk(Date.now()),l=p.log[k]=p.log[k]||{};let ch=false;
+  const V=L.filter(visible),t0=new Date();t0.setHours(0,0,0,0);
+  const doneToday=V.filter(x=>{const s=st(x.id);return s&&s.last>=t0.getTime()&&s.tries>1}).length;
+  const due=V.filter(x=>isDue(x.id)).length,cap=prog.cap===undefined?25:prog.cap;
+  if(!l.repaso&&doneToday>0&&(due===0||(cap&&doneToday>=cap))){l.repaso=1;ch=true}
+  const tasks=DAILY[new Date().getDay()]||[];
+  if(!l.rapido&&tasks.length&&tasks.every(t=>dailyDone(t[0])>=t[2])){l.rapido=1;ch=true}
+  if(!l.sim&&(prog.sims||[]).some(s=>dk(s.date)===k)){l.sim=1;ch=true}
+  if(ch){l.last=Date.now();save()}
+}
+function totalXP(){const p=plan();let x=0;Object.entries(p.log).forEach(([k,l])=>{const b=blocksFor(new Date(k+"T12:00").getDay());b.forEach(bb=>{if(l[bb])x+=XP[bb]||0});if(b.every(bb=>l[bb]))x+=30});return x}
+function streak(){let n=0;const d=new Date();if(dayPct(dk(d))>=.75)n++;d.setDate(d.getDate()-1);while(dayPct(dk(d))>=.75){n++;d.setDate(d.getDate()-1)}return n}
+function bestStreak(){const ks=Object.keys(plan().log).sort();let best=0,cur=0,prev=null;ks.forEach(k=>{const ok=dayPct(k)>=.75,dd=new Date(k+"T12:00");if(ok&&prev&&(dd-prev)/864e5<1.5)cur++;else cur=ok?1:0;if(ok)prev=dd;else prev=null;best=Math.max(best,cur)});return best}
+function medals(){
+  const p=plan(),S=prog.sims||[],days=Object.keys(p.log).filter(k=>dayPct(k)===1).length,core=L.filter(nucleo),seenC=core.filter(l=>st(l.id)).length;
+  const defOk=Object.values(prog.defs||{}).reduce((a,s)=>a+(s.ok||0),0),nipSeen=new Set(Object.keys(prog.mmpp||{}).filter(k=>/^mm:(r2n|n2r):/.test(k)).map(k=>k.split(":")[2])).size;
+  const bs=Math.max(bestStreak(),streak());
+  return[["Primer día completo",days>=1],["5 días completos",days>=5],["Racha de 3 días",bs>=3],["Racha de 7 días",bs>=7],["Racha de 14 días",bs>=14],
+    ["Primer simulacro",S.length>=1],["5 simulacros",S.length>=5],["Simulacro de 7 o más",S.some(s=>s.score/s.total*10>=7)],
+    ["Funciones vistas: 76/76",core.length&&seenC>=core.length],["Vuelta completa al temario",(p.ptr.procop||0)>=TRACKS.procop.items.length],
+    ["100 definiciones acertadas",defOk>=100],["Todos los NIP vistos",nipSeen>=MM_NIP.length]];
+}
+const codeOf=t=>{const m=String(t).match(/^(\d\.\d\d)/);if(m)return m[1];if(/^PAM IF/.test(t))return"PAM IF";if(/^PAM IN/.test(t))return"PAM IN";if(/^PTE/.test(t))return"PTE";if(/^Vestuario/.test(t))return"VEST";return null};
+function lastSeen(code){ // último día estudiado en el bloque PROCOP y último repaso de sus listas
+  let st_=0;Object.entries(plan().log).forEach(([k,l])=>{if(l.procop&&String(l.procop).split(" + ").some(x=>codeOf(x)===code)){const t=new Date(k+"T12:00").getTime();if(t>st_)st_=t}});
+  let rv=0;L.forEach(l=>{if(l.code===code){const s=st(l.id);if(s&&s.last>rv)rv=s.last}});return[st_,rv]}
+const day0=t=>{const x=new Date(t);x.setHours(0,0,0,0);return x.getTime()};
+const ago=t=>{if(!t)return"nunca";const d=Math.round((day0(Date.now())-day0(t))/864e5);return d<=0?"hoy":d===1?"ayer":`hace ${d} días`};
+function famFromItem(t){return /^BC BUP/.test(t)?"BC BUP / BUL":/^Equipo 1/.test(t)?"Equipo 1 (BZ1-BZ2)":/^Equipo 2/.test(t)?"Equipo 2 (BZ3-BZ4)":/^Equipo AMB/.test(t)?"Equipo AMB":/^Equipo VA/.test(t)?"Equipo VA":/^BC VA/.test(t)?"BC VA":/^BC BNL/.test(t)?"BC BNL":/^Equipo FSV/.test(t)?"Equipo FSV (BC y BZ)":/^Otros/.test(t)?"Otros (PMA, AGT, zapadores forestal)":null}
+function vHoy(el){
+  autoChecks();
+  const tog=`<div class="chips" role="group" aria-label="Vista"><button class="chip" data-hv="lista" aria-pressed="${calState.view!=="cal"}">Lista de hoy</button><button class="chip" data-hv="cal" aria-pressed="${calState.view==="cal"}">Calendario</button></div>`;
+  const bindTog=()=>el.querySelectorAll("[data-hv]").forEach(b=>b.onclick=()=>{calState.view=b.dataset.hv;render()});
+  if(calState.view==="cal"){el.innerHTML=tog+calHtml()+vueltaHtml();bindTog();calBind(el);return}
+  const p=plan(),now=new Date(),k=dk(now),dow=now.getDay(),l=p.log[k]=p.log[k]||{},blocks=blocksFor(dow);
+  const done=blocks.filter(b=>l[b]).length,xp=totalXP(),rk=RANKS.filter(r=>xp>=r[0]).pop(),nx=RANKS.find(r=>r[0]>xp),stk=streak();
+  const exam=p.exam?Math.ceil((new Date(p.exam+"T09:00")-now)/864e5):null;
+  const nextWork=t=>{const d=new Date(t);d.setDate(d.getDate()+1);while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);return d};
+  const trk=b=>{const i=p.ptr[b]||0,todayDone=l[b];let since=0;if(p.since[b]&&!todayDone){const sch=nextWork(p.since[b]);if(dk(sch)<k)since=sch.getTime()}
+    return{item:todayDone?String(l[b]):trackItem(b,i),next:trackItem(b,todayDone?i:i+1),since}};
+  const META={
+    repaso:{t:"Repaso de Inicio",time:"1 h",d:"Pendientes de Inicio, a folio en blanco",auto:true,go:()=>go("inicio")},
+    func:{t:"Funciones nuevas",time:"1 h",tr:"func"},
+    calle:{t:"Callejero",time:"1 h",d:"Parque "+CALLE_D[dow].replace("Parque ",""),d0:CALLE_D[dow]},
+    psico:{t:"Psicotécnicos",time:"1 h",d:"Personalidad"},
+    procop:{t:"PROCOP / planes",time:"45 min",tr:"procop"},
+    rapido:{t:"Bloque rápido",time:"20 min",d:(DAILY[dow]||[]).map(x=>x[1].split(" · ")[0]+" "+Math.min(dailyDone(x[0]),x[2])+"/"+x[2]).join(" · "),auto:true,go:()=>go("inicio")},
+    san:{t:"Sanitario IVASPE",time:"20 min",tr:"san"},
+    sim:{t:"Simulacro real",time:"60 min",d:"En papel con el PDF en blanco, y corrígelo en la app",auto:true,go:()=>go("simulacro")},
+    rev:{t:"Revisar fallos del simulacro",time:"1 h",d:"Escribe bien lo que fallaste y repasa esas listas"},
+    ivaspe:{t:"IVASPE: recordar",time:"30 min",d:"NIP (los dos sentidos) + sanitario de la semana en Rápido → Sanitario",go:()=>go("mmpp")}};
+  if(META.calle.d0.includes("Equipamientos"))META.calle.d=CALLE_D[dow];
+  const rows=blocks.map(b=>{const m=META[b];let detail=m.d||"",extra="",go_="";
+    if(m.tr){const t=trk(m.tr);detail=t.item;if(b==="procop")detail=`${t.item}${(p.ptr.procop||0)>=TRACKS.procop.items.length?` <span class="tag">Vuelta ${vuelta(p.ptr.procop-(l[b]?1:0))}</span>`:""}`;
+      if(t.since)extra=`<span class="tag exam">Pendiente desde ${new Date(t.since).toLocaleDateString("es-ES",{weekday:"short",day:"numeric"})}</span>`;
+      if(l[b])extra+=`<button class="toggle-it" data-more="${b}">Hacer también el siguiente: ${esc(t.next)}</button>`}
+    return`<div class="hrow ${l[b]?"hdone":""}"><button class="hchk" data-chk="${b}" aria-pressed="${!!l[b]}" aria-label="Marcar ${esc(m.t)}">${l[b]?"✓":""}</button>
+      <div class="hmain"><div class="row" style="justify-content:space-between;gap:6px"><b>${esc(m.t)}</b><span class="mono muted" style="font-size:.8rem">${m.time}${m.auto?" · se marca solo":""}</span></div>
+      <div class="hdet">${m.tr?detail:esc(detail)}</div>${extra?`<div class="row" style="gap:8px">${extra}</div>`:""}</div>
+      ${m.go||m.tr?`<button class="btn small" data-go="${b}">Ir</button>`:""}</div>`}).join("");
+  // semana
+  const mon=new Date(now);mon.setDate(now.getDate()-((dow+6)%7));
+  const week=[0,1,2,3,4,5,6].map(i=>{const d=new Date(mon);d.setDate(mon.getDate()+i);const key=dk(d),pc=dayPct(key),fut=key>k;
+    return`<div class="wday ${key===k?"wtoday":""}"><span class="mono" style="font-size:.75rem">${["L","M","X","J","V","S","D"][i]}</span><div class="wbarv"><i style="height:${fut?0:Math.round(pc*100)}%;background:${pc>=1?"var(--ok)":pc>=.75?"var(--hivis)":"var(--red)"}"></i></div><span class="mono" style="font-size:.7rem">${fut?"":Math.round(pc*100)+"%"}</span></div>`}).join("");
+  const M_=medals();
+  // estado del temario
+  const codes=P.map(x=>x.code).filter(c=>/^\d\.\d\d$/.test(c)).concat(["PAM IF","VEST","PTE","PAM IN"]);
+  const tem=codes.map(c=>{const [s1,s2]=lastSeen(c),ls=L.filter(x=>x.code===c&&visible(x)),pr=ls.filter(x=>st(x.id)).length,d=s1?Math.round((day0(Date.now())-day0(s1))/864e5):999;
+    const cls=d<=7?"tok":d<=14?"tmid":"tbad";
+    return`<div class="tcard ${cls}"><div class="row" style="justify-content:space-between"><span class="plate">${esc(c)}</span><span class="mono" style="font-size:.75rem">${pr}/${ls.length}</span></div><div style="font-size:.85rem">Estudiado: <b>${ago(s1)}</b></div><div class="muted" style="font-size:.78rem">Repaso de sus listas: ${ago(s2)}</div></div>`}).join("");
+  el.innerHTML=tog+`
+  <section class="hero stack">
+    <div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="eyebrow">${now.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"})}</div><h2 style="font-size:2rem">Tu día: ${done}/${blocks.length}</h2></div>
+    <div class="ring" style="--p:${Math.round(100*done/blocks.length)}"><span>${Math.round(100*done/blocks.length)}%</span></div></div>
+    <div class="row" style="gap:8px"><span class="pill ok">Racha: ${stk} día${stk===1?"":"s"}</span><span class="pill mid">${esc(rk[1])} · ${xp} XP</span>${exam!==null&&exam>=0?`<span class="pill miss">Examen en ${exam} días</span>`:""}</div>
+    ${nx?`<div><div class="meter"><i class="m-ok" style="width:${Math.round(100*(xp-rk[0])/(nx[0]-rk[0]))}%"></i></div><div class="muted" style="font-size:.8rem;margin-top:4px">${nx[0]-xp} XP para ${esc(nx[1])}. Día completo: +30 XP extra.</div></div>`:""}
+    ${done===blocks.length?`<div class="mm-fb good"><b>Día completo.</b> Así se llega al examen.</div>`:""}
+  </section>
+  <section class="stack" style="gap:8px">${rows}</section>
+  ${vueltaHtml()}
+  ${dow>=1&&dow<=5?dailyHtml():""}
+  <section class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.3rem">Esta semana</h3><span class="muted" style="font-size:.85rem">Verde: día completo · amarillo: 75% o más</span></div><div class="week">${week}</div></section>
+  <section class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.3rem">Estado del temario</h3><span class="muted" style="font-size:.85rem">Verde ≤ 7 días · amarillo ≤ 14 · rojo más</span></div>
+    <div class="tgrid">${tem}</div><p class="muted" style="margin:0;font-size:.85rem">"Estudiado" es el último día que lo hiciste en el bloque PROCOP; "repaso de sus listas", el último repaso de cualquiera de sus listas en Inicio. El número es cuántas de sus listas tienes ya en el repaso.</p></section>
+  <section class="panel stack"><h3 style="font-size:1.3rem">Medallas · ${M_.filter(x=>x[1]).length}/${M_.length}</h3><div class="medals">${M_.map(([n,ok])=>`<div class="medal ${ok?"on":""}"><span>${ok?"★":"☆"}</span>${esc(n)}</div>`).join("")}</div></section>
+  <details class="panel"><summary><b>Ajustar por dónde voy y fecha del examen</b></summary><div class="stack" style="margin-top:12px">
+    ${["func","procop","san"].map(b=>{const t=TRACKS[b],i=p.ptr[b]||0,n=t.items.length;const opts=t.items.map((x,j)=>`<option value="${j+(b==="procop"&&i>=n?Math.floor(i/n)*n:0)}" ${(i%n===j&&b==="procop")||(b!=="procop"&&i===j)?"selected":""}>${esc(x)}</option>`).join("")+(b==="func"?`<option value="${n}" ${i>=n?"selected":""}>${esc(t.cyc)}</option>`:"");
+      return`<label class="stack" style="gap:4px"><span class="eyebrow">${esc(t.name)}: lo próximo que te toca</span><select data-ptr="${b}" style="width:100%">${opts}</select></label>`}).join("")}
+    <label class="stack" style="gap:4px"><span class="eyebrow">La vuelta actual empezó el</span><input type="date" id="vsd" value="${dk(vueltaInfo().start)}" style="max-width:14em"></label>
+    <label class="stack" style="gap:4px"><span class="eyebrow">Fecha del examen (si la sabes)</span><input type="date" id="exd" value="${esc(p.exam||"")}" style="max-width:14em"></label>
+    <p class="muted" style="margin:0;font-size:.85rem">Lo que no marques hoy no se pierde: mañana te vuelve a salir y todo lo demás se corre un día. El callejero va por día de la semana.</p></div></details>`;
+  el.querySelectorAll("[data-chk]").forEach(b=>b.onclick=()=>{const x=b.dataset.chk;
+    if(TRACKS[x]){if(l[x]){p.ptr[x]=Math.max(0,(p.ptr[x]||0)-String(l[x]).split(" + ").length);delete l[x];if(x==="procop")p.vlog=p.vlog.filter(z=>z.i<p.ptr.procop)}
+      else{if(x==="procop")p.vlog.push({i:p.ptr.procop||0,t:Date.now()});l[x]=trackItem(x,p.ptr[x]||0);p.ptr[x]=(p.ptr[x]||0)+1;p.since[x]=Date.now()}}
+    else{if(l[x])delete l[x];else l[x]=1}
+    l.last=Date.now();save();render()});
+  el.querySelectorAll("[data-more]").forEach(b=>b.onclick=()=>{const x=b.dataset.more;if(x==="procop")p.vlog.push({i:p.ptr.procop||0,t:Date.now()});l[x]=String(l[x])+" + "+trackItem(x,p.ptr[x]||0);p.ptr[x]=(p.ptr[x]||0)+1;p.since[x]=Date.now();l.last=Date.now();save();render()});
+  el.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const x=b.dataset.go,m=META[x];if(m.go)return m.go();const t=trk(x).item;
+    if(x==="func"){const f=famFromItem(t);if(f){rolState.fam=f;go("rol")}else go("inicio")}
+    else if(x==="procop"){const c=codeOf(t);if(c){bancoState.cat="todas";bancoState.exam=false;go("banco",{code:c})}else{bancoState.code="todos";bancoState.cat="medidas";go("banco")}}
+    else if(x==="san"){bancoState.cat="todas";go("banco",{code:"SAN"})}});
+  el.querySelectorAll("[data-ptr]").forEach(s=>s.onchange=()=>{p.ptr[s.dataset.ptr]=+s.value;p.since[s.dataset.ptr]=Date.now();save();render()});
+  el.querySelector("#exd").onchange=e=>{p.exam=e.target.value;save();render()};
+  el.querySelector("#vsd").onchange=e=>{if(e.target.value){p.vstarts[vueltaInfo().n]=new Date(e.target.value+"T12:00").getTime();save();render()}};
+  dailyBind(el);bindTog();
+}
+
+/* ---------- calendario del plan (pasado real + futuro proyectado) ---------- */
+let calState={view:"lista",month:null,sel:null};
+const cap1=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const BLK_NAME={repaso:"Repaso de Inicio",func:"Funciones",calle:"Callejero",psico:"Psicotécnicos",procop:"PROCOP / planes",rapido:"Bloque rápido",san:"Sanitario",sim:"Simulacro real",rev:"Revisar fallos",ivaspe:"IVASPE: recordar"};
+function projectPlan(days){ // a partir de hoy: qué toca cada día si sigues el ritmo
+  const p=plan(),today=dk(Date.now()),lt=p.log[today]||{},out={};
+  const ptr={};["func","procop","san"].forEach(t=>{ptr[t]=p.ptr[t]||0});
+  const d=new Date();d.setHours(12,0,0,0);
+  for(let i=0;i<days;i++){const key=dk(d),dow=d.getDay(),bl=blocksFor(dow),o={};
+    bl.forEach(b=>{
+      if(TRACKS[b]){if(i===0&&lt[b])o[b]=String(lt[b]);else{o[b]=trackItem(b,ptr[b]);ptr[b]++}}
+      else if(b==="calle")o[b]=dow===0?CALLE_D[0]:"Parque "+CALLE_D[dow];
+      else if(b==="rapido")o[b]=(DAILY[dow]||[]).map(x=>x[1].split(" · ")[0]).join(" + ");
+      else o[b]="";
+    });
+    out[key]=o;d.setDate(d.getDate()+1);
+  }
+  return out;
+}
+function calHtml(){
+  const now=new Date(),today=dk(now);
+  if(!calState.month){calState.month=new Date(now.getFullYear(),now.getMonth(),1).getTime()}
+  const m0=new Date(calState.month),y=m0.getFullYear(),mo=m0.getMonth();
+  const first=new Date(y,mo,1),startOff=(first.getDay()+6)%7,nDays=new Date(y,mo+1,0).getDate();
+  const end=new Date(y,mo,nDays,12);const ahead=Math.max(1,Math.ceil((end-new Date(now.setHours(12,0,0,0)))/864e5)+1);
+  const proj=projectPlan(Math.min(ahead,400));
+  const log=plan().log;
+  let cells="";for(let i=0;i<startOff;i++)cells+=`<div class="cday empty"></div>`;
+  for(let dd=1;dd<=nDays;dd++){const date=new Date(y,mo,dd,12),key=dk(date),past=key<today,isT=key===today,dow=date.getDay();
+    const l=log[key]||{},pc=dayPct(key),pr=proj[key];
+    let tag="";
+    if(past){tag=Object.keys(l).filter(k=>k!=="last").length?`<span class="cpct" style="background:${pc>=1?"var(--ok)":pc>=.75?"var(--hivis)":"var(--bad)"};color:${pc>=.75&&pc<1?"#121212":"#fff"}">${Math.round(pc*100)}%</span>`:`<span class="cpct none">—</span>`}
+    else if(pr){let pp=pr.procop?String(pr.procop).split(":")[0]:dow===6?"Simul.":dow===0?"IVASPE":"";if(/^Medidas/.test(pp))pp="Medidas";if(/^Vestuario/.test(pp))pp="Vest.";tag=`<span class="cplan">${esc(pp)}</span>`}
+    cells+=`<button class="cday ${isT?"ctoday":""} ${past?"cpast":""} ${calState.sel===key?"csel":""}" data-day="${key}"><span class="cnum">${dd}</span>${tag}${isT?`<span class="cpct" style="background:var(--red);color:#fff">${Math.round(dayPct(key)*100)}%</span>`:""}</button>`}
+  const sel=calState.sel||today,sd=new Date(sel+"T12:00"),bl=blocksFor(sd.getDay()),sl=log[sel]||{},sp=proj[sel];
+  const isPast=sel<today,isToday=sel===today;
+  const det=bl.map(b=>{const doneV=sl[b],planV=sp?sp[b]:"";const txt=doneV&&doneV!==1?String(doneV):(planV||"");
+    const st_=doneV?"✓":isPast?"✗":"";
+    return`<div class="row" style="flex-wrap:nowrap;gap:10px;border-top:1px solid var(--line);padding-top:6px"><span class="cst ${doneV?"ok":isPast?"ko":""}">${st_}</span><div style="flex:1;min-width:0"><b>${BLK_NAME[b]}</b>${txt?`<div class="muted" style="font-size:.88rem">${esc(txt)}</div>`:""}</div></div>`}).join("");
+  return`<section class="panel stack">
+    <div class="row" style="justify-content:space-between"><button class="btn small" id="cprev" aria-label="Mes anterior">‹</button><h3 style="font-size:1.35rem">${cap1(m0.toLocaleDateString("es-ES",{month:"long",year:"numeric"}))}</h3><button class="btn small" id="cnext" aria-label="Mes siguiente">›</button></div>
+    <div class="cgrid">${["L","M","X","J","V","S","D"].map(x=>`<div class="chead">${x}</div>`).join("")}${cells}</div>
+    <p class="muted" style="margin:0;font-size:.82rem">Días pasados: lo que hiciste (porcentaje del día). Días futuros: el PROCOP que te tocará si sigues el ritmo. Si un día no completas algo, el calendario se recoloca solo; si adelantas, también.</p>
+  </section>
+  <section class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.25rem">${cap1(sd.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"}))}</h3><span class="tag">${isPast?"Hecho":isToday?"Hoy":"Previsto"}</span></div>${det}
+  ${isPast&&!Object.keys(sl).filter(k=>k!=="last").length?`<p class="muted" style="margin:0">Ese día no marcaste nada.</p>`:""}</section>`;
+}
+function calBind(el){
+  const mv=n=>{const d=new Date(calState.month);d.setMonth(d.getMonth()+n);calState.month=d.getTime();render()};
+  const a=el.querySelector("#cprev"),b=el.querySelector("#cnext");if(a)a.onclick=()=>mv(-1);if(b)b.onclick=()=>mv(1);
+  el.querySelectorAll("[data-day]").forEach(x=>x.onclick=()=>{calState.sel=x.dataset.day;render()});
+}
+
+/* ---------- tema claro / oscuro ---------- */
+function applyTheme(){let t="system";try{t=localStorage.getItem("procop-theme")||"system"}catch(e){}
+  const r=document.documentElement;if(t==="system")r.removeAttribute("data-theme");else r.setAttribute("data-theme",t);
+  const b=document.getElementById("themeBtn");if(b){b.textContent=t==="dark"?"Oscuro":t==="light"?"Claro":"Auto";b.setAttribute("aria-label","Tema: "+b.textContent+". Pulsa para cambiar")}}
+function cycleTheme(){let t="system";try{t=localStorage.getItem("procop-theme")||"system"}catch(e){}
+  const n=t==="system"?"light":t==="light"?"dark":"system";try{localStorage.setItem("procop-theme",n)}catch(e){}applyTheme()}
+
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
 /* ---------- arranque ---------- */
 loadLocal();
+applyTheme();
+document.getElementById("themeBtn").onclick=cycleTheme;
 window.__procop={get:()=>prog,merge:r=>{const n=mergeProg(r);render();return n},setSync};
 Promise.resolve(JSON.parse(document.getElementById("procop-data").textContent)).then(d=>{
   P=d;L=[];FACTS=[];
