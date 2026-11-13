@@ -154,6 +154,8 @@ ol.items li.own .it-txt{font-weight:600}
 .hmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .hdet{font-size:.92rem;overflow-wrap:anywhere}
 .hdone .hdet{color:var(--muted)}
+.hrow.hpart{background:color-mix(in srgb,var(--hivis) 14%,var(--panel));border-color:color-mix(in srgb,var(--hivis) 60%,var(--line))}
+.hrow.hpart .hchk{border-color:var(--hivis);color:var(--fg);font-weight:700}
 .ring{--p:0;flex:0 0 auto;width:74px;height:74px;border-radius:50%;background:conic-gradient(var(--ok) calc(var(--p)*1%),var(--sunk) 0);display:grid;place-items:center}
 .ring span{width:56px;height:56px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:1.15rem}
 .week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -286,7 +288,8 @@ function mergeProg(r){let n=0;
     Object.entries(q.log||{}).forEach(([d,v])=>{const mine=p.log[d];if(!mine||(v.last||0)>(mine.last||0)){p.log[d]=v;n++}});
     if(!p.exam&&q.exam)p.exam=q.exam;
     p.vlog=p.vlog||[];(q.vlog||[]).forEach(z=>{if(!p.vlog.some(y=>y.i===z.i))p.vlog.push(z)});p.vlog.sort((a,b)=>a.i-b.i);
-    p.vstarts=Object.assign({},q.vstarts||{},p.vstarts||{});if(q.v2)p.v2=1}
+    p.vstarts=Object.assign({},q.vstarts||{},p.vstarts||{});if(q.v2)p.v2=1;
+    if(q.part!==undefined&&((q.part&&q.part.t)||0)>((p.part&&p.part.t)||0))p.part=q.part}
   if(r&&Array.isArray(r.sims)){prog.sims=prog.sims||[];r.sims.forEach(x=>{if(!prog.sims.some(y=>y.id===x.id)){prog.sims.push(x);n++}})}
   try{localStorage.setItem("procop-prog",JSON.stringify(prog))}catch(e){}
   return n;
@@ -1300,7 +1303,7 @@ function dfPick(){
   let r=Math.random()*w.reduce((a,b)=>a+b,0);for(let k=0;k<D.length;k++){r-=w[k];if(r<=0)return D[k]}return D[D.length-1];
 }
 function dfMark(ok){const k=df.mode+":"+df.cur.key,s=prog.defs[k]||{ok:0,bad:0};ok?s.ok++:s.bad++;s.last=Date.now();prog.defs[k]=s;ok?df.ok++:df.bad++;save()}
-function dfNext(){df.cur=dfPick();df.phase="ask";df.typed="";df.res=null;render();const f=$("#dfin");if(f)f.focus({preventScroll:true})}
+function dfNext(){df.cur=dfPick();df.rep=0;df.phase="ask";df.typed="";df.res=null;render();const f=$("#dfin");if(f)f.focus({preventScroll:true})}
 const termWords=t=>tokens(t.replace(/\(.*?\)/g," ")).filter(w=>w.length>2&&!["del","las","los","para","con","por","una","que"].includes(w));
 function maskTerm(def,term){
   const ws=termWords(term).filter(w=>w.length>3);if(!ws.length)return esc(def);
@@ -1319,7 +1322,7 @@ function vDefs(el){
   const seen=deck.filter(d=>prog.defs[df.mode+":"+d.key]).length;
   let card='<p class="empty">No hay definiciones con este filtro.</p>';
   if(c){
-    const head=`<div class="row"><span class="plate">${esc(c.code)}</span><span class="muted" style="font-size:.85rem">${esc(c.list)}</span>${c.also.length?`<span class="tag">También en ${esc(c.also.join(", "))}</span>`:""}</div>`;
+    const head=`<div class="row"><span class="plate">${esc(c.code)}</span><span class="muted" style="font-size:.85rem">${esc(c.list)}</span>${c.also.length?`<span class="tag">También en ${esc(c.also.join(", "))}</span>`:""}${df.rep?`<span class="tag" style="background:var(--hivis);color:#121212">Repetición ${df.rep}</span>`:""}</div>`;
     if(df.mode==="t2d"){
       const kws=c.kw.filter(k=>!termWords(c.term).some(w=>norm(k).startsWith(w.slice(0,5))));
       const toks=tokens(df.typed);const hits=kws.filter(k=>kwHit(k,toks));
@@ -1327,11 +1330,11 @@ function vDefs(el){
       <textarea id="dfin" style="min-height:110px" placeholder="Escribe la definición antes de destapar" ${done?"readonly":""}>${esc(df.typed)}</textarea>`;
       card+=!done?`<div class="row"><button class="btn primary" id="dfshow">Ver definición</button></div>`
         :`<div class="mm-fb"><div>${hilite(c.def,kws)}</div>${kws.length&&df.typed.trim()?`<div class="muted" style="font-size:.85rem">Claves que has puesto: ${hits.length} de ${kws.length}${kws.length?" ("+kws.map(k=>hits.includes(k)?"✓ "+esc(k):"✗ "+esc(k)).join(" · ")+")":""}</div>`:""}</div>
-        ${df.phase==="shown"?`<div class="row"><button class="btn" id="dfno">No lo sabía</button><button class="btn primary" id="dfyes">Lo sabía</button></div>`:`<div class="row"><button class="btn primary" id="dfnext">Siguiente</button></div>`}`;
+        ${df.phase==="shown"&&!df.rep?`<div class="row"><button class="btn" id="dfno">No lo sabía</button><button class="btn primary" id="dfyes">Lo sabía</button><button class="btn" id="dfagain">Escribirla otra vez</button></div>`:`<div class="row"><button class="btn" id="dfagain">Escribirla otra vez</button><button class="btn primary" id="dfnext">Siguiente</button></div>`}`;
     }else{
       card=`${head}<div class="eyebrow">¿Qué término se define?</div><div class="mm-q" style="font-size:1.15rem;font-weight:500">${maskTerm(c.def,c.term)}</div>
       <form id="dff" class="row" autocomplete="off"><input id="dfin" class="simnip" style="font-size:1.1rem" spellcheck="false" placeholder="Término" value="${esc(df.typed)}" ${done?"readonly":""}><button class="btn primary" type="submit">${done?"Siguiente":"Comprobar"}</button></form>`;
-      if(done){const ok=df.res;card+=`<div class="mm-fb ${ok?"good":"bad"}"><b>${ok?"Correcto":"No"}</b><span>Es: <b>${esc(c.term)}</b>${!ok&&df.typed?` · tú: ${esc(df.typed)}`:""}</span>${!ok?`<div><button class="toggle-it" id="dffix">Lo tenía (dar por buena)</button></div>`:""}</div>`}
+      if(done){const ok=df.res;card+=`<div class="mm-fb ${ok?"good":"bad"}"><b>${ok?"Correcto":"No"}</b><span>Es: <b>${esc(c.term)}</b>${!ok&&df.typed?` · tú: ${esc(df.typed)}`:""}</span>${!ok&&!df.rep?`<div><button class="toggle-it" id="dffix">Lo tenía (dar por buena)</button></div>`:""}</div><div class="row"><button class="btn" id="dfagain">Hacerla otra vez</button></div>`}
     }
   }
   el.innerHTML=`
@@ -1344,16 +1347,17 @@ function vDefs(el){
   <details class="panel" id="dftab"><summary><b>Todas las definiciones</b> <span class="muted">· ${deck.length} con este filtro</span></summary><div class="stack" style="margin-top:12px">
     <input type="search" id="dfq" placeholder="Buscar término o palabra: puesto base, ERA, garaje…" value="${esc(df.q)}" aria-label="Buscar definición">
     <div id="dfrows" class="stack" style="gap:6px"></div></div></details>`;
-  el.querySelectorAll("[data-dm]").forEach(b=>b.onclick=()=>{df.mode=b.dataset.dm;df.cur=null;df.phase="ask";df.typed="";render()});
-  el.querySelectorAll("[data-ds]").forEach(b=>b.onclick=()=>{df.scope=b.dataset.ds;df.cur=null;df.phase="ask";df.typed="";render()});
+  el.querySelectorAll("[data-dm]").forEach(b=>b.onclick=()=>{df.mode=b.dataset.dm;df.cur=null;df.rep=0;df.phase="ask";df.typed="";render()});
+  el.querySelectorAll("[data-ds]").forEach(b=>b.onclick=()=>{df.scope=b.dataset.ds;df.cur=null;df.rep=0;df.phase="ask";df.typed="";render()});
   const q=(id,fn)=>{const x=el.querySelector(id);if(x)x.onclick=fn};
   const inp=el.querySelector("#dfin");if(inp)inp.oninput=()=>{df.typed=inp.value};
   q("#dfshow",()=>{df.phase="shown";render()});
   q("#dfyes",()=>{dfMark(true);dfNext()});q("#dfno",()=>{dfMark(false);df.phase="done";render()});
   q("#dfnext",dfNext);
+  q("#dfagain",()=>{df.rep=(df.rep||0)+1;df.phase="ask";df.typed="";df.res=null;render();const f=$("#dfin");if(f)f.focus({preventScroll:true})});
   const f=el.querySelector("#dff");
   if(f)f.onsubmit=e=>{e.preventDefault();if(df.phase!=="ask"){dfNext();return}if(!df.typed.trim()){inp.focus();return}
-    df.res=termOk(df.typed,c.term);dfMark(df.res);df.phase="done";render();const b=$("#dff button");if(b)b.focus({preventScroll:true})};
+    df.res=termOk(df.typed,c.term);if(!df.rep)dfMark(df.res);df.phase="done";render();const b=$("#dff button");if(b)b.focus({preventScroll:true})};
   q("#dffix",()=>{const k=df.mode+":"+c.key,s=prog.defs[k];if(s&&s.bad>0){s.bad--;s.ok++;df.bad--;df.ok++;save()}df.res=true;render()});
   const tab=el.querySelector("#dftab");try{if(sessionStorage.getItem("dftab")==="1")tab.open=true}catch(e){}
   tab.ontoggle=()=>{try{sessionStorage.setItem("dftab",tab.open?"1":"0")}catch(e){}};
@@ -1639,7 +1643,7 @@ const TRACKS={
     "Equipo 1: plantilla + 1.01, 1.02, 1.03, 1.05","Equipo 1: 1.06, 1.07, 3.01, 3.02, 3.03",
     "Equipo 2: plantilla + 1.01, 1.03, 1.05","Equipo 2: 1.06, 1.07, 3.01, 3.03","Equipo AMB (8 listas)","Equipo VA (6 listas)",
     "BC VA + BC UEX","BC BNL + BZ BNL","Equipo FSV + Equipos BUP B","Otros: Equipo PMA, AGT, zapadores forestal"]},
-  procop:{name:"PROCOP / planes",time:"45 min",loop:true,items:["1.01","1.02","1.11","1.03","1.05","1.06","1.07","3.01","3.02","3.03","3.08","5.01","PTE","PAM IF","PAM IN"]},
+  procop:{name:"PROCOP / planes",time:"2 h",loop:true,items:["1.01","1.02","1.11","1.03","1.05","1.06","1.07","3.01","3.02","3.03","3.08","5.01","PTE","PAM IF","PAM IN"]},
   san:{name:"Sanitario IVASPE",time:"20 min",loop:true,loopFrom:9,items:[
     "Leer cap. 1-3","Leer cap. 4 (RCP adulto y OVACE)","Leer cap. 5 (RCP infantil)","Leer cap. 6 (DESA)","Leer cap. 7-8 (ventilación, hemorragias)",
     "Leer cap. 9 (trauma, X-ABCDE)","Leer cap. 10-11","Leer cap. 12 (quemaduras)","Leer cap. 13 (múltiples víctimas)",
@@ -1655,21 +1659,27 @@ function plan(){const fresh=!prog.plan||!prog.plan.ptr;const p=prog.plan=prog.pl
   return p}
 const PL=()=>TRACKS.procop.items.length;
 const dayDiff=(a,b)=>Math.round((day0(b)-day0(a))/864e5);
+const bdone=(l,x)=>!!(l[x]||(x==="procop"&&l.procopP));
+function partPct(){const p=plan();return p.part&&p.part.i===(p.ptr.procop||0)?p.part.pct:0}
+function procPace(){ // días laborables que te lleva de media cada PROCOP (últimas 5 semanas)
+  const p=plan(),now=Date.now(),from=now-35*864e5,t0=day0(now);let days=0;
+  Object.entries(p.log).forEach(([k,l])=>{const t=new Date(k+"T12:00").getTime();if(t>=from&&t<t0&&(l.procop||l.procopP))days++});
+  const done=p.vlog.filter(z=>z.t>=from&&z.t<t0).length;return done>=3?Math.min(3,Math.max(1,days/done)):1}
 function vueltaInfo(){
-  const p=plan(),L_=PL(),ptr=p.ptr.procop||0,n=Math.floor(ptr/L_)+1,doneN=ptr%L_;
+  const p=plan(),L_=PL(),ptr=p.ptr.procop||0,n=Math.floor(ptr/L_)+1,doneN=ptr%L_,part=partPct(),pace=procPace();
   const startOf=k=>p.vstarts[k]||((p.vlog.find(x=>Math.floor(x.i/L_)===k-1)||{}).t)||null;
   const start=startOf(n)||Date.now();
-  const todayDone=!!(p.log[dk(Date.now())]||{}).procop;
-  let rem=L_-doneN,d=new Date();d.setHours(12,0,0,0);if(todayDone)d.setDate(d.getDate()+1);
+  const todayDone=bdone(p.log[dk(Date.now())]||{},"procop");
+  let rem=Math.max(1,Math.ceil((L_-doneN-part/100)*pace)),d=new Date();d.setHours(12,0,0,0);if(todayDone)d.setDate(d.getDate()+1);
   while(rem>0){if(d.getDay()!==0&&d.getDay()!==6){rem--;if(!rem)break}d.setDate(d.getDate()+1)}
   const hist=[];for(let k=1;k<n;k++){const s=startOf(k),e=(p.vlog.find(x=>x.i===k*L_-1)||{}).t;if(s&&e)hist.push({n:k,start:s,end:e,days:dayDiff(s,e)+1})}
-  return{n,doneN,L:L_,start,day:dayDiff(start,Date.now())+1,end:d.getTime(),totalPrev:dayDiff(start,d.getTime())+1,hist};
+  return{n,doneN,part,pace,L:L_,start,day:dayDiff(start,Date.now())+1,end:d.getTime(),totalPrev:dayDiff(start,d.getTime())+1,hist};
 }
-function vueltaHtml(){const v=vueltaInfo(),pct=Math.round(100*v.doneN/v.L),f=t=>new Date(t).toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"});
+function vueltaHtml(){const v=vueltaInfo(),pct=Math.round(100*(v.doneN+v.part/100)/v.L),f=t=>new Date(t).toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"});
   return`<section class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.3rem">Vuelta ${v.n} al temario</h3><span class="mono">día ${v.day} · ${pct}%</span></div>
   <div class="meter" style="height:10px"><i class="m-ok" style="width:${pct}%"></i></div>
-  <div class="row" style="justify-content:space-between;font-size:.88rem"><span>${v.doneN} de ${v.L} hechos · empezó el ${f(v.start)}</span><span class="muted">Fin previsto: ${f(v.end)} (≈ ${v.totalPrev} días)</span></div>
-  <div class="row" style="gap:4px;flex-wrap:wrap">${TRACKS.procop.items.map((x,i)=>`<span class="tag" style="${i<v.doneN?"background:var(--ok-soft);border-color:var(--ok);color:var(--fg)":i===v.doneN?"border-color:var(--red);color:var(--red)":""}">${esc(x)}</span>`).join("")}</div>
+  <div class="row" style="justify-content:space-between;font-size:.88rem"><span>${v.doneN} de ${v.L} hechos${v.part?` + ${v.part}% del ${esc(TRACKS.procop.items[v.doneN])}`:""} · empezó el ${f(v.start)}${v.pace>1.05?` · ritmo: ${String(Math.round(v.pace*10)/10).replace(".",",")} días por PROCOP`:""}</span><span class="muted">Fin previsto: ${f(v.end)} (≈ ${v.totalPrev} días)</span></div>
+  <div class="row" style="gap:4px;flex-wrap:wrap">${TRACKS.procop.items.map((x,i)=>`<span class="tag" style="${i<v.doneN?"background:var(--ok-soft);border-color:var(--ok);color:var(--fg)":i===v.doneN?"border-color:var(--red);color:var(--red)":""}">${esc(x)}${i===v.doneN&&v.part?` · ${v.part}%`:""}</span>`).join("")}</div>
   ${v.hist.length?`<div class="eyebrow">Vueltas terminadas</div>${v.hist.slice().reverse().map(x=>`<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:4px"><span><b>Vuelta ${x.n}</b> · ${f(x.start)} → ${f(x.end)}</span><b>${x.days} días</b></div>`).join("")}`:""}</section>`}
 function trackItem(k,i){const t=TRACKS[k];if(i<t.items.length)return t.items[i];if(t.cyc)return t.cyc;const from=t.loopFrom||0,n=t.items.length-from;return t.items[from+((i-t.items.length)%n)]}
 const vuelta=i=>Math.floor(i/TRACKS.procop.items.length)+1;
@@ -1678,7 +1688,7 @@ function blocksFor(dow){
   if(dow===0)return["repaso","calle","ivaspe"];
   return["repaso","func","calle","psico","procop","rapido","san"];
 }
-function dayPct(key){const l=plan().log[key]||{},b=blocksFor(new Date(key+"T12:00").getDay());return b.filter(x=>l[x]).length/b.length}
+function dayPct(key){const l=plan().log[key]||{},b=blocksFor(new Date(key+"T12:00").getDay());return b.filter(x=>bdone(l,x)).length/b.length}
 function autoChecks(){ // marca solos los bloques que la app puede comprobar
   const p=plan(),k=dk(Date.now()),l=p.log[k]=p.log[k]||{};let ch=false;
   const V=L.filter(visible),t0=new Date();t0.setHours(0,0,0,0);
@@ -1690,7 +1700,7 @@ function autoChecks(){ // marca solos los bloques que la app puede comprobar
   if(!l.sim&&(prog.sims||[]).some(s=>dk(s.date)===k)){l.sim=1;ch=true}
   if(ch){l.last=Date.now();save()}
 }
-function totalXP(){const p=plan();let x=0;Object.entries(p.log).forEach(([k,l])=>{const b=blocksFor(new Date(k+"T12:00").getDay());b.forEach(bb=>{if(l[bb])x+=XP[bb]||0});if(b.every(bb=>l[bb]))x+=30});return x}
+function totalXP(){const p=plan();let x=0;Object.entries(p.log).forEach(([k,l])=>{const b=blocksFor(new Date(k+"T12:00").getDay());b.forEach(bb=>{if(bdone(l,bb))x+=XP[bb]||0});if(b.every(bb=>bdone(l,bb)))x+=30});return x}
 function streak(){let n=0;const d=new Date();if(dayPct(dk(d))>=.75)n++;d.setDate(d.getDate()-1);while(dayPct(dk(d))>=.75){n++;d.setDate(d.getDate()-1)}return n}
 function bestStreak(){const ks=Object.keys(plan().log).sort();let best=0,cur=0,prev=null;ks.forEach(k=>{const ok=dayPct(k)>=.75,dd=new Date(k+"T12:00");if(ok&&prev&&(dd-prev)/864e5<1.5)cur++;else cur=ok?1:0;if(ok)prev=dd;else prev=null;best=Math.max(best,cur)});return best}
 function medals(){
@@ -1704,7 +1714,7 @@ function medals(){
 }
 const codeOf=t=>{const m=String(t).match(/^(\d\.\d\d)/);if(m)return m[1];if(/^PAM IF/.test(t))return"PAM IF";if(/^PAM IN/.test(t))return"PAM IN";if(/^PTE/.test(t))return"PTE";if(/^Vestuario/.test(t))return"VEST";return null};
 function lastSeen(code){ // último día estudiado en el bloque PROCOP y último repaso de sus listas
-  let st_=0;Object.entries(plan().log).forEach(([k,l])=>{if(l.procop&&String(l.procop).split(" + ").some(x=>codeOf(x)===code)){const t=new Date(k+"T12:00").getTime();if(t>st_)st_=t}});
+  let st_=0;Object.entries(plan().log).forEach(([k,l])=>{if((l.procop&&String(l.procop).split(" + ").some(x=>codeOf(x)===code))||(l.procopP&&codeOf(l.procopP.c)===code)){const t=new Date(k+"T12:00").getTime();if(t>st_)st_=t}});
   let rv=0;L.forEach(l=>{if(l.code===code){const s=st(l.id);if(s&&s.last>rv)rv=s.last}});return[st_,rv]}
 const day0=t=>{const x=new Date(t);x.setHours(0,0,0,0);return x.getTime()};
 const ago=t=>{if(!t)return"nunca";const d=Math.round((day0(Date.now())-day0(t))/864e5);return d<=0?"hoy":d===1?"ayer":`hace ${d} días`};
@@ -1715,7 +1725,7 @@ function vHoy(el){
   const bindTog=()=>el.querySelectorAll("[data-hv]").forEach(b=>b.onclick=()=>{calState.view=b.dataset.hv;render()});
   if(calState.view==="cal"){el.innerHTML=tog+calHtml()+vueltaHtml();bindTog();calBind(el);return}
   const p=plan(),now=new Date(),k=dk(now),dow=now.getDay(),l=p.log[k]=p.log[k]||{},blocks=blocksFor(dow);
-  const done=blocks.filter(b=>l[b]).length,xp=totalXP(),rk=RANKS.filter(r=>xp>=r[0]).pop(),nx=RANKS.find(r=>r[0]>xp),stk=streak();
+  const done=blocks.filter(b=>bdone(l,b)).length,xp=totalXP(),rk=RANKS.filter(r=>xp>=r[0]).pop(),nx=RANKS.find(r=>r[0]>xp),stk=streak();
   const exam=p.exam?Math.ceil((new Date(p.exam+"T09:00")-now)/864e5):null;
   const nextWork=t=>{const d=new Date(t);d.setDate(d.getDate()+1);while(d.getDay()===0||d.getDay()===6)d.setDate(d.getDate()+1);return d};
   const trk=b=>{const i=p.ptr[b]||0,todayDone=l[b];let since=0;if(p.since[b]&&!todayDone){const sch=nextWork(p.since[b]);if(dk(sch)<k)since=sch.getTime()}
@@ -1725,7 +1735,7 @@ function vHoy(el){
     func:{t:"Funciones nuevas",time:"1 h",tr:"func"},
     calle:{t:"Callejero",time:"1 h",d:"Parque "+CALLE_D[dow].replace("Parque ",""),d0:CALLE_D[dow]},
     psico:{t:"Psicotécnicos",time:"1 h",d:"Personalidad"},
-    procop:{t:"PROCOP / planes",time:"45 min",tr:"procop"},
+    procop:{t:"PROCOP / planes",time:"2 h",tr:"procop"},
     rapido:{t:"Bloque rápido",time:"20 min",d:(DAILY[dow]||[]).map(x=>x[1].split(" · ")[0]+" "+Math.min(dailyDone(x[0]),x[2])+"/"+x[2]).join(" · "),auto:true,go:()=>go("inicio")},
     san:{t:"Sanitario IVASPE",time:"20 min",tr:"san"},
     sim:{t:"Simulacro real",time:"60 min",d:"En papel con el PDF en blanco, y corrígelo en la app",auto:true,go:()=>go("simulacro")},
@@ -1733,10 +1743,12 @@ function vHoy(el){
     ivaspe:{t:"IVASPE: recordar",time:"30 min",d:"NIP (los dos sentidos) + sanitario de la semana en Rápido → Sanitario",go:()=>go("mmpp")}};
   if(META.calle.d0.includes("Equipamientos"))META.calle.d=CALLE_D[dow];
   const rows=blocks.map(b=>{const m=META[b];let detail=m.d||"",extra="",go_="";
-    if(m.tr){const t=trk(m.tr);detail=t.item;if(b==="procop")detail=`${t.item}${(p.ptr.procop||0)>=TRACKS.procop.items.length?` <span class="tag">Vuelta ${vuelta(p.ptr.procop-(l[b]?1:0))}</span>`:""}`;
+    if(m.tr){const t=trk(m.tr);detail=t.item;if(b==="procop"){const pp=partPct();detail=`${t.item}${(p.ptr.procop||0)>=TRACKS.procop.items.length?` <span class="tag">Vuelta ${vuelta(p.ptr.procop-(l[b]?1:0))}</span>`:""}${!l[b]&&pp?` · <b>llevas ${pp}%</b>`:""}`;
+        if(!l[b])detail+=`<div class="row" style="gap:6px;margin-top:6px;align-items:center"><span class="muted" style="font-size:.85rem">Hoy he llegado al</span>${[25,50,75,100].map(v=>`<button class="chip" data-pp="${v}" aria-pressed="${pp===v}" style="padding:2px 10px">${v}%</button>`).join("")}</div>`}
       if(t.since)extra=`<span class="tag exam">Pendiente desde ${new Date(t.since).toLocaleDateString("es-ES",{weekday:"short",day:"numeric"})}</span>`;
       if(l[b])extra+=`<button class="toggle-it" data-more="${b}">Hacer también el siguiente: ${esc(t.next)}</button>`}
-    return`<div class="hrow ${l[b]?"hdone":""}"><button class="hchk" data-chk="${b}" aria-pressed="${!!l[b]}" aria-label="Marcar ${esc(m.t)}">${l[b]?"✓":""}</button>
+    const pt=!l[b]&&b==="procop"&&l.procopP;
+    return`<div class="hrow ${l[b]?"hdone":pt?"hpart":""}"><button class="hchk" data-chk="${b}" aria-pressed="${!!l[b]}" aria-label="Marcar ${esc(m.t)}${pt?" como terminado":""}">${l[b]?"✓":pt?`<span style="font-size:.7rem">${l.procopP.pct}%</span>`:""}</button>
       <div class="hmain"><div class="row" style="justify-content:space-between;gap:6px"><b>${esc(m.t)}</b><span class="mono muted" style="font-size:.8rem">${m.time}${m.auto?" · se marca solo":""}</span></div>
       <div class="hdet">${m.tr?detail:esc(detail)}</div>${extra?`<div class="row" style="gap:8px">${extra}</div>`:""}</div>
       ${m.go||m.tr?`<button class="btn small" data-go="${b}">Ir</button>`:""}</div>`}).join("");
@@ -1770,11 +1782,16 @@ function vHoy(el){
       return`<label class="stack" style="gap:4px"><span class="eyebrow">${esc(t.name)}: lo próximo que te toca</span><select data-ptr="${b}" style="width:100%">${opts}</select></label>`}).join("")}
     <label class="stack" style="gap:4px"><span class="eyebrow">La vuelta actual empezó el</span><input type="date" id="vsd" value="${dk(vueltaInfo().start)}" style="max-width:14em"></label>
     <label class="stack" style="gap:4px"><span class="eyebrow">Fecha del examen (si la sabes)</span><input type="date" id="exd" value="${esc(p.exam||"")}" style="max-width:14em"></label>
-    <p class="muted" style="margin:0;font-size:.85rem">Lo que no marques hoy no se pierde: mañana te vuelve a salir y todo lo demás se corre un día. El callejero va por día de la semana.</p></div></details>`;
+    <p class="muted" style="margin:0;font-size:.85rem">Lo que no marques hoy no se pierde: mañana te vuelve a salir y todo lo demás se corre un día. Si un PROCOP no te da tiempo a acabarlo, marca hasta dónde has llegado (25, 50, 75%): el día cuenta como hecho, mañana sigues por ahí y el fin de vuelta se recalcula con tu ritmo real. El callejero va por día de la semana.</p></div></details>`;
   el.querySelectorAll("[data-chk]").forEach(b=>b.onclick=()=>{const x=b.dataset.chk;
-    if(TRACKS[x]){if(l[x]){p.ptr[x]=Math.max(0,(p.ptr[x]||0)-String(l[x]).split(" + ").length);delete l[x];if(x==="procop")p.vlog=p.vlog.filter(z=>z.i<p.ptr.procop)}
-      else{if(x==="procop")p.vlog.push({i:p.ptr.procop||0,t:Date.now()});l[x]=trackItem(x,p.ptr[x]||0);p.ptr[x]=(p.ptr[x]||0)+1;p.since[x]=Date.now()}}
+    if(TRACKS[x]){if(l[x]){p.ptr[x]=Math.max(0,(p.ptr[x]||0)-String(l[x]).split(" + ").length);delete l[x];if(x==="procop"){p.vlog=p.vlog.filter(z=>z.i<p.ptr.procop);const was=l.procopP?l.procopP.pct:l.procopWas||0;delete l.procopWas;p.part={i:p.ptr.procop,pct:was,t:Date.now()}}}
+      else{if(x==="procop"){const pw=partPct();if(pw&&!l.procopP)l.procopWas=pw;p.vlog.push({i:p.ptr.procop||0,t:Date.now()});p.part={i:-1,pct:0,t:Date.now()}}l[x]=trackItem(x,p.ptr[x]||0);p.ptr[x]=(p.ptr[x]||0)+1;p.since[x]=Date.now()}}
     else{if(l[x])delete l[x];else l[x]=1}
+    l.last=Date.now();save();render()});
+  el.querySelectorAll("[data-pp]").forEach(b=>b.onclick=()=>{const v=+b.dataset.pp,pp=partPct();
+    if(v===100){el.querySelector('[data-chk="procop"]').click();return}
+    if(l.procopP&&pp===v){const fr=l.procopP.from||0;p.part={i:p.ptr.procop||0,pct:fr,t:Date.now()};delete l.procopP}
+    else{const fr=l.procopP?l.procopP.from||0:pp;l.procopP={c:trackItem("procop",p.ptr.procop||0),pct:v,from:fr};p.part={i:p.ptr.procop||0,pct:v,t:Date.now()};p.since.procop=Date.now()}
     l.last=Date.now();save();render()});
   el.querySelectorAll("[data-more]").forEach(b=>b.onclick=()=>{const x=b.dataset.more;if(x==="procop")p.vlog.push({i:p.ptr.procop||0,t:Date.now()});l[x]=String(l[x])+" + "+trackItem(x,p.ptr[x]||0);p.ptr[x]=(p.ptr[x]||0)+1;p.since[x]=Date.now();l.last=Date.now();save();render()});
   el.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const x=b.dataset.go,m=META[x];if(m.go)return m.go();const t=trk(x).item;
@@ -1793,11 +1810,12 @@ const cap1=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const BLK_NAME={repaso:"Repaso de Inicio",func:"Funciones",calle:"Callejero",psico:"Psicotécnicos",procop:"PROCOP / planes",rapido:"Bloque rápido",san:"Sanitario",sim:"Simulacro real",rev:"Revisar fallos",ivaspe:"IVASPE: recordar"};
 function projectPlan(days){ // a partir de hoy: qué toca cada día si sigues el ritmo
   const p=plan(),today=dk(Date.now()),lt=p.log[today]||{},out={};
-  const ptr={};["func","procop","san"].forEach(t=>{ptr[t]=p.ptr[t]||0});
+  const ptr={};["func","procop","san"].forEach(t=>{ptr[t]=p.ptr[t]||0});const pace=procPace();let pos=(p.ptr.procop||0)+partPct()/100;
   const d=new Date();d.setHours(12,0,0,0);
   for(let i=0;i<days;i++){const key=dk(d),dow=d.getDay(),bl=blocksFor(dow),o={};
     bl.forEach(b=>{
-      if(TRACKS[b]){if(i===0&&lt[b])o[b]=String(lt[b]);else{o[b]=trackItem(b,ptr[b]);ptr[b]++}}
+      if(b==="procop"){if(i===0&&lt.procop)o[b]=String(lt.procop);else if(i===0&&lt.procopP)o[b]=lt.procopP.c+" · hasta "+lt.procopP.pct+"%";else{o[b]=trackItem(b,Math.floor(pos+1e-9));pos+=1/pace}}
+      else if(TRACKS[b]){if(i===0&&lt[b])o[b]=String(lt[b]);else{o[b]=trackItem(b,ptr[b]);ptr[b]++}}
       else if(b==="calle")o[b]=dow===0?CALLE_D[0]:"Parque "+CALLE_D[dow];
       else if(b==="rapido")o[b]=(DAILY[dow]||[]).map(x=>x[1].split(" · ")[0]).join(" + ");
       else o[b]="";
@@ -1823,7 +1841,7 @@ function calHtml(){
     cells+=`<button class="cday ${isT?"ctoday":""} ${past?"cpast":""} ${calState.sel===key?"csel":""}" data-day="${key}"><span class="cnum">${dd}</span>${tag}${isT?`<span class="cpct" style="background:var(--red);color:#fff">${Math.round(dayPct(key)*100)}%</span>`:""}</button>`}
   const sel=calState.sel||today,sd=new Date(sel+"T12:00"),bl=blocksFor(sd.getDay()),sl=log[sel]||{},sp=proj[sel];
   const isPast=sel<today,isToday=sel===today;
-  const det=bl.map(b=>{const doneV=sl[b],planV=sp?sp[b]:"";const txt=doneV&&doneV!==1?String(doneV):(planV||"");
+  const det=bl.map(b=>{const pv=b==="procop"&&!sl[b]&&sl.procopP,doneV=sl[b]||(pv?sl.procopP.c+" · hasta "+sl.procopP.pct+"%":0),planV=sp?sp[b]:"";const txt=doneV&&doneV!==1?String(doneV):(planV||"");
     const st_=doneV?"✓":isPast?"✗":"";
     return`<div class="row" style="flex-wrap:nowrap;gap:10px;border-top:1px solid var(--line);padding-top:6px"><span class="cst ${doneV?"ok":isPast?"ko":""}">${st_}</span><div style="flex:1;min-width:0"><b>${BLK_NAME[b]}</b>${txt?`<div class="muted" style="font-size:.88rem">${esc(txt)}</div>`:""}</div></div>`}).join("");
   return`<section class="panel stack">
