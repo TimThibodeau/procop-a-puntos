@@ -271,7 +271,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/(\b[a-z])\.(?=[a-z]\b)/g,"$1").replace(/[^a-z0-9ñ]+/g," ").trim();
 
 /* ---------- persistencia ---------- */
-function loadLocal(){try{const r=localStorage.getItem("procop-prog");if(r)prog=JSON.parse(r)}catch(e){}prog.lists=prog.lists||{};prog.facts=prog.facts||{};prog.mmpp=prog.mmpp||{};prog.quick=prog.quick||{};prog.tab=prog.tab||{};prog.defs=prog.defs||{};prog.rev=prog.rev||{}}
+function loadLocal(){try{const r=localStorage.getItem("procop-prog");if(r)prog=JSON.parse(r)}catch(e){}prog.lists=prog.lists||{};prog.facts=prog.facts||{};prog.mmpp=prog.mmpp||{};prog.quick=prog.quick||{};prog.tab=prog.tab||{};prog.defs=prog.defs||{};prog.rev=prog.rev||{};prog.mnemo=prog.mnemo||{}}
 let saveT=null;
 function save(){
   try{localStorage.setItem("procop-prog",JSON.stringify(prog))}catch(e){}
@@ -280,7 +280,7 @@ function save(){
 }
 /* fusiona un progreso externo: en cada registro gana el más reciente */
 function mergeProg(r){let n=0;
-  for(const sec of ["lists","facts","mmpp","quick","tab","defs","rev"]){prog[sec]=prog[sec]||{};for(const [k,v] of Object.entries((r&&r[sec])||{})){const mine=prog[sec][k];if(!mine||(v.last||0)>(mine.last||0)){prog[sec][k]=v;n++}}}
+  for(const sec of ["lists","facts","mmpp","quick","tab","defs","rev","mnemo"]){prog[sec]=prog[sec]||{};for(const [k,v] of Object.entries((r&&r[sec])||{})){const mine=prog[sec][k];if(!mine||(v.last||0)>(mine.last||0)){prog[sec][k]=v;n++}}}
   ["cap","repOrder","hideMando","hideN","simCfg"].forEach(k=>{if(prog[k]===undefined&&r&&r[k]!==undefined)prog[k]=r[k]});
   if(r&&r.plan){const p=prog.plan=prog.plan||{},q=r.plan;p.ptr=p.ptr||{};p.since=p.since||{};p.log=p.log||{};
     const qp=Object.assign({},q.ptr||{});if(!q.v2&&qp.procop!=null){const c=codeOf(OLD_PROCOP[qp.procop%OLD_PROCOP.length]);const ni=TRACKS.procop.items.findIndex(x=>codeOf(x)===c);qp.procop=ni<0?0:ni}
@@ -300,7 +300,7 @@ async function pushRemote(){
   if(!db||!uid)return;
   if(pushing){pendingPush=true;return}
   pushing=true;
-  try{await db.doc("data/users/"+uid+"/state/progress").set({lists:prog.lists,facts:prog.facts,mmpp:prog.mmpp,quick:prog.quick,tab:prog.tab,defs:prog.defs,rev:prog.rev||{},sims:prog.sims||[],plan:prog.plan||{},cap:prog.cap===undefined?25:prog.cap,order:prog.repOrder||"mezcla",hideMando:prog.hideMando===false?false:true,t:Date.now()});setSync("guardado en tu cuenta")}
+  try{await db.doc("data/users/"+uid+"/state/progress").set({lists:prog.lists,facts:prog.facts,mmpp:prog.mmpp,quick:prog.quick,tab:prog.tab,defs:prog.defs,rev:prog.rev||{},mnemo:prog.mnemo||{},sims:prog.sims||[],plan:prog.plan||{},cap:prog.cap===undefined?25:prog.cap,order:prog.repOrder||"mezcla",hideMando:prog.hideMando===false?false:true,t:Date.now()});setSync("guardado en tu cuenta")}
   catch(e){setSync("guardado solo en este dispositivo")}
   pushing=false;if(pendingPush){pendingPush=false;pushRemote()}
 }
@@ -324,7 +324,7 @@ async function initRemote(){
       for(const [k,v] of Object.entries(r.tab||{})){const mine=prog.tab[k];if(!mine||(v.last||0)>(mine.last||0))prog.tab[k]=v}
       for(const [k,v] of Object.entries(r.defs||{})){const mine=prog.defs[k];if(!mine||(v.last||0)>(mine.last||0))prog.defs[k]=v}
       if(Array.isArray(r.sims)){prog.sims=prog.sims||[];r.sims.forEach(x=>{if(!prog.sims.some(y=>y.id===x.id))prog.sims.push(x)})}
-      if(r.plan)mergeProg({plan:r.plan});if(r.rev)mergeProg({rev:r.rev});
+      if(r.plan)mergeProg({plan:r.plan});if(r.rev)mergeProg({rev:r.rev});if(r.mnemo)mergeProg({mnemo:r.mnemo});
       if(prog.hideMando===undefined&&r.hideMando===false)prog.hideMando=false;
       if(prog.cap===undefined&&typeof r.cap==="number")prog.cap=r.cap;
       if(!prog.repOrder&&r.order&&r.order!=="func")prog.repOrder=r.order;
@@ -374,6 +374,21 @@ function hilite(text,kws){
   // resalta palabras del texto cuya forma normalizada empieza por la clave
   return out.replace(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9]+/g,m=>{const n=norm(m);return words.some(w=>n.startsWith(w.slice(0,Math.max(4,Math.min(w.length,6))))||n===w)?'<span class="kw">'+m+"</span>":m});
 }
+/* ---------- dónde fallas más ---------- */
+const failN=s=>!s?0:(s.bad!==undefined?s.bad:(s.box===1&&s.last?1:0));
+function failRows(entries){return entries.filter(e=>e.bad>0).sort((a,b)=>(b.bad-.5*b.ok)-(a.bad-.5*a.ok)||b.bad-a.bad||(b.last||0)-(a.last||0))}
+function failHtml(rows,seen,fid,on){
+  const top=rows.slice(0,15);
+  return`<details class="panel" id="${fid}tab"><summary><b>Dónde fallas más</b> <span class="muted">· ${rows.length} con algún fallo de ${seen} vistas</span></summary><div class="stack" style="margin-top:12px">
+  ${top.length?`<table class="mmt"><tbody>${top.map(e=>`<tr><td><b>${esc(e.label)}</b>${e.sub?`<div class="muted" style="font-size:.82rem">${esc(e.sub)}</div>`:""}</td><td class="mono" style="white-space:nowrap;text-align:right"><span style="color:var(--bad)">✗ ${e.bad}</span> · ✓ ${e.ok}</td></tr>`).join("")}</tbody></table>
+  <div class="row"><button class="btn small ${on?"":"primary"}" id="${fid}">${on?"Volver a practicar todo":"Practicar solo mis fallos ("+rows.length+")"}</button></div>`
+  :`<p class="muted" style="margin:0">Todavía no has fallado nada aquí. Cuando practiques más, verás aquí lo que más se te atasca.</p>`}
+  <p class="muted" style="margin:0;font-size:.82rem">Ordenado por fallos menos la mitad de aciertos: lo de arriba es lo que más se te resiste. Cuenta todo lo que hagas aquí y en los simulacros.</p></div></details>`}
+function failBind(el,fid,fn){const b=el.querySelector("#"+fid);if(b)b.onclick=fn;const t=el.querySelector("#"+fid+"tab");if(t){try{if(sessionStorage.getItem(fid)==="1")t.open=true}catch(e){}t.ontoggle=()=>{try{sessionStorage.setItem(fid,t.open?"1":"0")}catch(e){}}}}
+/* ---------- regla mnemotécnica propia ---------- */
+const mnemoOf=id=>(prog.mnemo&&prog.mnemo[id]&&prog.mnemo[id].t)||"";
+function mnemoHtml(l,label){return`<div class="stack" style="gap:4px"><label class="eyebrow" for="mnemo">${label||"Tu regla mnemotécnica"}</label><textarea id="mnemo" style="min-height:64px" placeholder="Ej.: ACAPA — Asegurar, Control, Ataque a gases, Pintar, Ataque directo">${esc(mnemoOf(l.id))}</textarea><span class="muted" id="mnemook" style="font-size:.8rem">Se guarda sola y te saldrá aquí y al corregir.</span></div>`}
+function mnemoBind(el,l){const t=el.querySelector("#mnemo");if(!t)return;let tm=null;t.oninput=()=>{clearTimeout(tm);tm=setTimeout(()=>{prog.mnemo=prog.mnemo||{};prog.mnemo[l.id]={t:t.value.trim(),last:Date.now()};save();const o=el.querySelector("#mnemook");if(o)o.textContent="Guardada."},500)}}
 const acronym=list=>list.items.map(it=>{const s=it.text.replace(/^[^A-Za-zÁÉÍÓÚÑáéíóúñ0-9]+/,"");return s.charAt(0).toUpperCase()}).join("");
 
 /* ---------- navegación ---------- */
@@ -401,14 +416,20 @@ const WEIGHTS=[
 ["PAM IF / PEIF: grupos locales, niveles, situaciones","0,5","En la app","ok"],
 ["NIP de mercancías peligrosas","0,5","En la app (MMPP)","ok"],
 ["Sanitario IVASPE (no cayó en estos dos)","0","En la app (SAN)","ok"]];
+function roundGap(code){ // días hasta que este tema te vuelva a tocar en la vuelta (null si no va en la vuelta)
+  try{const it=TRACKS.procop.items,L_=it.length,ptr=(plan().ptr.procop||0)%L_,idx=it.findIndex(x=>codeOf(x)===code);if(idx<0)return null;return Math.round(((idx-ptr+L_)%L_)*procPace()*7/5)}catch(e){return null}}
+function smartScore(l){const s=st(l.id);let sc=Math.max(0,(Date.now()-s.due)/DAY);
+  if(s.lastScore!==undefined&&s.lastScore<0.6)sc+=6;
+  const g=roundGap(l.code);if(g!==null){if(g<=2)sc-=8;else sc+=Math.min(6,g/3)}
+  return sc}
 function vInicio(el){
   const V=L.filter(visible);
   const due=V.filter(l=>isDue(l.id));const seen=V.filter(l=>st(l.id));
   // prioridad: 1) falladas la última vez 2) salió en examen 3) funciones de bombero 4) resto; dentro, la más atrasada primero
   const ord=prog.repOrder||"mezcla";
   const failed=l=>{const s=st(l.id);return s.lastScore!==undefined&&s.lastScore<0.6};
-  const byPrio=(a,b)=>(failed(a)?0:1)-(failed(b)?0:1)||(EXAM[a.id]?0:1)-(EXAM[b.id]?0:1)||st(a.id).due-st(b.id).due;
-  const dueFunc=due.filter(nucleo).sort(byPrio),dueRest=due.filter(l=>!nucleo(l)).sort(byPrio);
+  const byPrio=(a,b)=>(failed(a)?0:1)-(failed(b)?0:1)||st(a.id).due-st(b.id).due;
+  const dueFunc=due.filter(nucleo).sort(byPrio),dueRest=due.filter(l=>!nucleo(l)).sort(ord==="mezcla"?(a,b)=>smartScore(b)-smartScore(a):byPrio);
   if(ord==="olvido")due.sort((a,b)=>st(a.id).due-st(b.id).due);
   else if(ord==="func")due.splice(0,due.length,...dueFunc,...dueRest);
   else{const mix=[];let i=0,j=0;while(i<dueFunc.length||j<dueRest.length){for(let k=0;k<3&&i<dueFunc.length;k++)mix.push(dueFunc[i++]);for(let k=0;k<2&&j<dueRest.length;k++)mix.push(dueRest[j++])}due.splice(0,due.length,...mix)}
@@ -425,8 +446,8 @@ function vInicio(el){
     <div class="eyebrow">Repaso de hoy</div>
     <h2>${today.length?`Hoy: ${today.length} lista${today.length>1?"s":""} para repasar`:due.length?"Tope de hoy cumplido":seen.length?"Al día. Toca meter listas nuevas":"Empieza por las funciones de bombero"}</h2>
     ${due.length?`<p style="margin:0">${due.length} pendiente${due.length>1?"s":""} en total${cap?` · tope diario ${cap} (≈ ${Math.round(cap*2.5)} min)`:""}${doneToday?` · ya has repasado ${doneToday} hoy`:""}${due.length>today.length&&today.length?` · las ${due.length-today.length} restantes esperan a mañana`:""}</p>`:""}
-    <p class="muted" style="margin:0">${ord==="olvido"?"Orden por curva de olvido: primero la que lleva más días esperando, sea lo que sea.":ord==="func"?"Orden: primero todas las funciones de bombero, después el resto.":"Mezcla: 3 funciones y 2 del resto, alternando; dentro de cada grupo, primero lo que fallaste y lo que salió en examen."} Una lista entra aquí cuando la haces en "Ponerme a prueba" y la guardas.</p>
-    <div class="row" style="gap:8px"><span class="eyebrow">Orden</span><div class="chips"><button class="chip" data-ord="mezcla" aria-pressed="${ord==="mezcla"}">Mezcla 3:2</button><button class="chip" data-ord="func" aria-pressed="${ord==="func"}">Funciones primero</button><button class="chip" data-ord="olvido" aria-pressed="${ord==="olvido"}">Curva de olvido</button></div></div>
+    <p class="muted" style="margin:0">${ord==="olvido"?"Orden por curva de olvido: primero la que lleva más días esperando, sea lo que sea.":ord==="func"?"Orden: primero todas las funciones de bombero, después el resto.":"Recomendado: 3 funciones y 2 del resto, alternando. Funciones: primero lo que fallaste y lo más atrasado. Resto: primero lo que fallaste, lo más atrasado y lo que tardará más en tocarte en la vuelta; lo que estudias en la vuelta en 1-2 días baja, porque ya lo vas a ver."} Una lista entra aquí cuando la haces en "Ponerme a prueba" y la guardas.</p>
+    <div class="row" style="gap:8px"><span class="eyebrow">Orden</span><div class="chips"><button class="chip" data-ord="mezcla" aria-pressed="${ord==="mezcla"}">Recomendado 3:2</button><button class="chip" data-ord="func" aria-pressed="${ord==="func"}">Funciones primero</button><button class="chip" data-ord="olvido" aria-pressed="${ord==="olvido"}">Curva de olvido</button></div></div>
     <div class="row" style="gap:8px"><span class="eyebrow">Tope diario</span><div class="chips">${[15,25,35,0].map(n=>`<button class="chip" data-cap="${n}" aria-pressed="${cap===n}">${n||"Sin tope"}</button>`).join("")}</div></div>
     <div class="row">
       ${today.length?`<button class="btn primary" id="goDue">Repasar ${today.length}</button>`
@@ -464,7 +485,7 @@ function vInicio(el){
   el.querySelectorAll("[data-ord]").forEach(b=>b.onclick=()=>{prog.repOrder=b.dataset.ord;save();render()});
   el.querySelectorAll("[data-cap]").forEach(b=>b.onclick=()=>{prog.cap=+b.dataset.cap;save();render()});
   q("#goQuick",()=>go("rapido"));
-  q("#goNew",()=>{const pool=freshExam.length?freshExam:fresh;go("prueba",{id:pool[Math.floor(Math.random()*pool.length)].id,from:"inicio"})});
+  q("#goNew",()=>{const pool=fresh;go("prueba",{id:pool[Math.floor(Math.random()*pool.length)].id,from:"inicio"})});
   q("#goSim",()=>go("simulacro"));
   q("#goAhead",()=>startQueue(ahead.slice(0,10).map(l=>l.id),"inicio"));
   dailyBind(el);
@@ -519,6 +540,7 @@ function vLista(el){
   <div class="muted" style="font-size:.9rem">${esc(P.find(p=>p.code===l.code).title)}${s?` · caja ${s.box} · ${s.tries} intento${s.tries>1?"s":""} · mejor ${Math.round(100*s.best)}%`:""}</div>
   ${EXAM[l.id]?`<div class="note exam"><b>Salió en examen.</b> ${esc(EXAM[l.id])}</div>`:""}
   ${l.note?`<div class="note">${esc(l.note)}</div>`:""}
+  ${mnemoOf(l.id)?`<div class="note"><b>Tu regla:</b> ${esc(mnemoOf(l.id))}</div>`:""}
   ${l.code==="MAN"?`<div class="row" style="gap:8px"><span class="muted" style="font-size:.88rem">${revOf(l.id)===0?"Esta lista está fuera de tu temario.":revOf(l.id)===1?"Esta lista está en tu temario.":"Sin revisar."}</span>${revOf(l.id)!==1?`<button class="btn small" data-rv="1">Entra</button>`:""}${revOf(l.id)!==0?`<button class="btn small" data-rv="0">No entra</button>`:""}</div>`:""}
   <div class="row"><button class="btn primary" id="test">Ponerme a prueba</button>
     <div class="chips" role="group" aria-label="Modo de estudio">
@@ -534,7 +556,8 @@ function vLista(el){
   const body=el.querySelector("#body");
   const miss=s&&s.miss||{};
   if(mode==="clave"){
-    body.innerHTML=`<div><div class="eyebrow">Iniciales para el acrónimo</div><div class="acro">${esc(acronym(l))}</div></div><ol class="items">${l.items.map((it,i)=>`<li${miss[i]?' class="miss"':""}><div class="it-txt">${hilite(it.text,it.keywords||[])}<div class="it-actions">Claves: ${(it.keywords||[]).map(esc).join(" · ")}${miss[i]?` · fallado ${miss[i]}×`:""}</div></div></li>`).join("")}</ol>`;
+    body.innerHTML=`<div><div class="eyebrow">Iniciales para el acrónimo</div><div class="acro">${esc(acronym(l))}</div></div>${mnemoHtml(l)}<ol class="items">${l.items.map((it,i)=>`<li${miss[i]?' class="miss"':""}><div class="it-txt">${hilite(it.text,it.keywords||[])}<div class="it-actions">Claves: ${(it.keywords||[]).map(esc).join(" · ")}${miss[i]?` · fallado ${miss[i]}×`:""}</div></div></li>`).join("")}</ol>`;
+    mnemoBind(body,l);
   }else if(mode==="tapar"){
     body.innerHTML=`<p class="muted" style="margin:0">Intenta decir cada punto antes de destaparlo. Toca un punto para verlo.</p><ol class="items">${l.items.map((it,i)=>`<li data-i="${i}" style="cursor:pointer"><div class="it-txt"><span class="hidden-it">${esc(it.text)}</span></div></li>`).join("")}</ol><div class="row"><button class="btn small" id="all">Destapar todo</button></div>`;
     body.querySelectorAll("li").forEach(li=>li.onclick=()=>{li.querySelector(".it-txt").innerHTML=hilite(l.items[li.dataset.i].text,l.items[li.dataset.i].keywords||[])});
@@ -583,6 +606,7 @@ function vPrueba(el){
   <textarea id="ans" autocapitalize="sentences" placeholder="1. …&#10;2. …&#10;3. …"></textarea>
   <div class="row"><button class="btn primary" id="go">Corregir</button><button class="btn" id="giveup">No me sale, enséñamela</button>
   <label class="row muted" style="gap:6px;font-size:.88rem"><input type="checkbox" id="hn" ${hideN?"checked":""}> Ocultar el número de puntos</label></div>
+  ${mnemoOf(l.id)?`<details><summary class="muted" style="font-size:.9rem;cursor:pointer">Pista: ver tu regla mnemotécnica</summary><div class="note" style="margin-top:6px">${esc(mnemoOf(l.id))}</div></details>`:""}
   <div id="res"></div>`;
   el.querySelector("#bk").onclick=()=>{queue=null;go(ctx.from==="inicio"?"inicio":"lista",{id:l.id})};
   el.querySelector("#hn").onchange=e=>{prog.hideN=e.target.checked;save();render()};
@@ -601,9 +625,11 @@ function showResult(box,l,g,withSave){
       <div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="eyebrow">Resultado</div><div class="score">${n}<small> / ${l.items.length}</small></div></div>
       <div class="muted" style="max-width:34ch;font-size:.88rem">Si la corrección automática se ha equivocado, toca "Lo tenía" o "No lo tenía" en cada punto antes de guardar.</div></div>
       <ol class="items">${l.items.map((it,i)=>`<li class="${g[i].hit?"hit":"miss"}"><div class="it-txt">${hilite(it.text,it.keywords||[])}<div class="it-actions"><button class="toggle-it" data-i="${i}">${g[i].hit?"No lo tenía":"Lo tenía"}</button></div></div></li>`).join("")}</ol>
+      <div class="stack" style="gap:6px"><div><span class="eyebrow">Iniciales</span> <span class="acro" style="font-size:1.2rem">${esc(acronym(l))}</span></div>${mnemoHtml(l,"Tu regla mnemotécnica (escríbela o mejórala ahora)")}</div>
       ${withSave?`<div class="row"><button class="btn primary" id="save">Guardar y ${queue&&queue.i<queue.ids.length-1?"siguiente":"terminar"}</button><button class="btn" id="retry">Repetir sin guardar</button></div>`:""}
     </div>`;
     box.querySelectorAll(".toggle-it").forEach(b=>b.onclick=()=>{g[b.dataset.i].hit=!g[b.dataset.i].hit;draw()});
+    mnemoBind(box,l);
     if(withSave){
       box.querySelector("#save").onclick=()=>{
         const miss=g.map((x,i)=>x.hit?-1:i).filter(i=>i>=0);grade(l.id,n/l.items.length,miss);
@@ -724,7 +750,7 @@ function vSimDone(el){
       box.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{sim.nok[b.dataset.k]=!sim.nok[b.dataset.k];draw();upd()})};draw()}
   el.querySelector("#sv").onclick=e=>{sim.ids.forEach(id=>{const g=sim.g[id];grade(id,g.filter(x=>x.hit).length/g.length,g.map((x,i)=>x.hit?-1:i).filter(i=>i>=0))});
     if(nd)sim.defs.forEach((k,j)=>{const key="t2d:"+k,s=prog.defs[key]||{ok:0,bad:0};sim.dok[j]?s.ok++:s.bad++;s.last=Date.now();prog.defs[key]=s});
-    if(sim.nips)sim.nips.forEach((n,k)=>{const ok=sim.nok[k],key="mm:n2r:"+n,s=prog.mmpp[key]||{box:0};s.box=ok?Math.min(6,(s.box||0)+1):1;s.due=Date.now()+(ok?INTERVALS[s.box]*DAY-3600000:600000);s.last=Date.now();prog.mmpp[key]=s});save();e.target.disabled=true;e.target.textContent="Guardado"};
+    if(sim.nips)sim.nips.forEach((n,k)=>{const ok=sim.nok[k],key="mm:n2r:"+n,s=prog.mmpp[key]||{box:0};s.ok=(s.ok||0)+(ok?1:0);s.bad=(s.bad!==undefined?s.bad:failN(s))+(ok?0:1);s.box=ok?Math.min(6,(s.box||0)+1):1;s.due=Date.now()+(ok?INTERVALS[s.box]*DAY-3600000:600000);s.last=Date.now();prog.mmpp[key]=s});save();e.target.disabled=true;e.target.textContent="Guardado"};
   el.querySelector("#nw").onclick=()=>{sim=null;render()};
 }
 
@@ -905,6 +931,7 @@ const mmNorm=s=>String(s).toUpperCase().replace(/[^0-9X]/g,"");
 function mmPick(){
   const md=MM_MODES[mm.mode];let deck=mmCards(md.deck);
   if(md.deck==="nip"&&mm.only)deck=deck.filter(c=>c.d);
+  if(mm.fails){const f=deck.filter(c=>failN(prog.mmpp[mmKey(c)])>0);if(f.length)deck=f}
   const now=Date.now(),S=c=>prog.mmpp[mmKey(c)];
   const prev=mm.cur&&mm.cur.num;const pool=deck.length>1?deck.filter(c=>c.num!==prev):deck;
   const due=pool.filter(c=>S(c)&&S(c).due<=now);
@@ -916,7 +943,7 @@ function mmPick(){
 }
 function mmGrade(c,ok){
   const k=mmKey(c),s=prog.mmpp[k]||{box:0};
-  s.box=ok?Math.min(6,(s.box||0)+1):1;
+  s.box=ok?Math.min(6,(s.box||0)+1):1;s.ok=(s.ok||0)+(ok?1:0);s.bad=(s.bad!==undefined?s.bad:failN(s))+(ok?0:1);
   s.due=Date.now()+(ok?INTERVALS[s.box]*DAY-3600000:10*60000);
   s.last=Date.now();prog.mmpp[k]=s;save();
   ok?mm.ok++:mm.bad++;
@@ -950,6 +977,7 @@ function vMmpp(el){
   </div>
   <div class="row" style="justify-content:space-between"><span class="eyebrow">${seen.length} / ${deck.length} vistos · ${mast.length} dominados</span><span class="mono muted">Esta sesión: ${mm.ok} ✓ · ${mm.bad} ✗</span></div>
   <div class="panel stack mm-card">${card}</div>
+  ${failHtml(failRows(deck.map(x=>{const s=prog.mmpp["mm:"+mm.mode+":"+x.num];return{label:x.num+" · "+x.text,ok:(s&&s.ok)||0,bad:failN(s),last:s&&s.last}})),seen.length,"mmfail",!!mm.fails)}
   <details class="panel" id="mmtab"><summary><b>Tabla de estudio</b> <span class="muted">· cifras y ${MM_NIP.length} NIP</span></summary>
     <div class="stack" style="margin-top:12px">
       <div class="eyebrow">Cifras de peligro</div>
@@ -960,7 +988,8 @@ function vMmpp(el){
     </div></details>`;
   el.querySelectorAll("[data-mm]").forEach(b=>b.onclick=()=>{mm.mode=b.dataset.mm;mm.cur=null;render()});
   const q=(id,fn)=>{const x=el.querySelector(id);if(x)x.onclick=fn};
-  q("#mmall",()=>{mm.only=false;mm.cur=null;render()});q("#mmd",()=>{mm.only=true;mm.cur=null;render()});
+  q("#mmall",()=>{mm.only=false;mm.cur=null;render()});
+  failBind(el,"mmfail",()=>{mm.fails=!mm.fails;mm.cur=null;render()});q("#mmd",()=>{mm.only=true;mm.cur=null;render()});
   const next=()=>{mm.cur=mmPick();mm.phase="ask";mm.typed="";render();const f=$("#mmin")||$("#mmta");if(f)f.focus()};
   const f=el.querySelector("#mmf");
   if(f)f.onsubmit=e=>{e.preventDefault();if(mm.phase!=="ask"){next();return}
@@ -1208,11 +1237,16 @@ function trenTok(s){
 }
 function trenDiff(ans,ok){const a=trenTok(ans),b=trenTok(ok),miss=[],extra=a.slice();b.forEach(t=>{const i=extra.indexOf(t);i>=0?extra.splice(i,1):miss.push(t)});return{ok:!miss.length&&!extra.length,miss,extra}}
 const TDECKS={tren:"Tren y mando",mando:"Solo nivel de mando",siglas:"Siglas"};
-let tb={deck:"tren",only:false,cur:null,phase:"ask",typed:"",lvl:null,res:null,ok:0,bad:0,q:""};
+let tb={deck:"tren",only:false,cur:null,phase:"ask",typed:"",obs:"",lvl:null,res:null,ok:0,bad:0,q:""};
+const OBS_STOP=new Set("para como debe deben debera tener este esta estos estas sobre cuando donde desde hasta entre segun sera seran tambien otro otra otros otras puede pueden mismo misma solo".split(" "));
+function obsKw(t){const out=[];tokens(t).forEach(w=>{if((w.length>=4||/\d/.test(w))&&!OBS_STOP.has(w)&&!out.includes(w))out.push(w)});return out}
+function obsGrade(typed,obs){const ks=obsKw(obs),tk_=tokens(typed||""),hit=ks.filter(k=>kwHit(k,tk_));return{ks,hit,ok:!ks.length||hit.length/ks.length>=.6}}
+function tbLabel(c){return c.r?"COD "+c.r[0]+" · "+movName(c.r):c.s?c.s[0]+" · "+c.s[1]:c.row?c.row.k+" → "+c.row.v:c.key}
 const LKNAME={"PAM IF":"Zonas Devesa (PAM IF)","VEST":"Vestuario por servicio","PAM IN":"Inundación PATRICOVA","PTE":"Barrio → distrito"};
 const LKORD=["PAM IF","VEST","PAM IN","PTE"];
 function tbLookups(){return P.filter(p=>p.lookup&&p.lookup.rows&&p.lookup.rows.length).sort((a,b)=>LKORD.indexOf(a.code)-LKORD.indexOf(b.code)).map(p=>({id:"lk:"+p.code,code:p.code,...p.lookup,name:LKNAME[p.code]||p.lookup.title}))}
-function tbDeck(){
+function tbDeck(){const D=tbDeck0();if(tb.fails){const f=D.filter(c=>((prog.tab[c.key]||{}).bad||0)>0);if(f.length)return f}return D}
+function tbDeck0(){
   if(tb.deck==="tren")return MOV.map((r,i)=>({key:"tren:"+i,r})).filter(c=>!tb.only||c.r[6]);
   if(tb.deck==="mando")return MOV.map((r,i)=>({key:"mando:"+i,r})).filter(c=>c.r[4]&&(!tb.only||c.r[6]));
   if(tb.only&&tb.deck.startsWith("lk:")){const lk=tbLookups().find(x=>x.id===tb.deck);if(lk&&lk.rows.some(r=>r.exam))return lk.rows.filter(r=>r.exam).map(row=>({key:tb.deck+":"+row.k,row,lk}))}
@@ -1232,8 +1266,8 @@ function tbPick(){
     c.opts=(vals.length<=6?pool:shuffle(pool)).map(v=>({label:v,ok:v===c.row.v}))}
   return c;
 }
-function tbMark(ok){const s=prog.tab[tb.cur.key]||{ok:0,bad:0};ok?s.ok++:s.bad++;s.last=Date.now();prog.tab[tb.cur.key]=s;ok?tb.ok++:tb.bad++;save()}
-function tbNext(){tb.cur=tbPick();tb.phase="ask";tb.typed="";tb.lvl=null;tb.res=null;render();const f=$("#tbin");if(f)f.focus({preventScroll:true})}
+function tbMark(ok,parts){const s=prog.tab[tb.cur.key]||{ok:0,bad:0};ok?s.ok++:s.bad++;if(parts){if(parts.t===false)s.bT=(s.bT||0)+1;if(parts.m===false)s.bM=(s.bM||0)+1;if(parts.o===false)s.bO=(s.bO||0)+1}s.last=Date.now();prog.tab[tb.cur.key]=s;ok?tb.ok++:tb.bad++;save()}
+function tbNext(){tb.cur=tbPick();tb.phase="ask";tb.typed="";tb.obs="";tb.lvl=null;tb.res=null;render();const f=$("#tbin");if(f)f.focus({preventScroll:true})}
 function vTablas(el){
   const lks=tbLookups();
   if(!tb.cur)tb.cur=tbPick();
@@ -1249,6 +1283,7 @@ function vTablas(el){
         ?`<p class="muted" style="margin:0">Tren por estaciones: dilo o escríbelo y destapa.</p><textarea id="tbin" style="min-height:80px" placeholder="Est A: … · Est B: …" ${done?"readonly":""}>${esc(tb.typed)}</textarea>`
         :`<label class="eyebrow" for="tbin">Tren de salida</label><input id="tbin" class="simnip" style="font-family:var(--f-mono);font-size:1.1rem;text-transform:uppercase" autocomplete="off" spellcheck="false" placeholder="BUP + VA + AMB + UEX" value="${esc(tb.typed)}" ${done?"readonly":""}>`;
     }
+    if(tb.deck==="tren"&&r[5])card+=`<label class="eyebrow" for="tbobs">Observaciones</label><textarea id="tbobs" style="min-height:64px" placeholder="Lo que dice la columna de observaciones del protocolo" ${done?"readonly":""}>${esc(tb.obs)}</textarea>`;
     if(r[4]){card+=`<div class="eyebrow">Nivel de mando mínimo</div><div class="chips">${NIVELES.map(n=>`<button class="chip" data-lv="${n}" aria-pressed="${tb.lvl===n}" ${done?"disabled":""}>${n}</button>`).join("")}</div>`}
     if(!done)card+=`<div class="row"${tb.deck==="mando"?" hidden":""}><button class="btn primary" id="tbgo">${tb.deck==="tren"&&multi?"Destapar":"Comprobar"}</button></div>`;
     else{
@@ -1256,7 +1291,7 @@ function vTablas(el){
       card+=`<div class="mm-fb ${rs.self?"":rs.ok?"good":"bad"}">
         ${tb.deck==="tren"?`<div><span class="eyebrow">Tren</span> <b class="mono">${esc(r[3])}</b>${rs.diff&&!rs.diff.ok?`<div class="muted" style="font-size:.88rem">${rs.diff.miss.length?"Te faltó: "+esc(rs.diff.miss.join(", ")):""}${rs.diff.miss.length&&rs.diff.extra.length?" · ":""}${rs.diff.extra.length?"Sobra: "+esc(rs.diff.extra.join(", ")):""}</div>`:""}</div>`:""}
         ${r[4]?`<div><span class="eyebrow">Mando mínimo</span> <b>${r[4]}</b>${tb.lvl&&tb.lvl!==r[4]?` <span class="muted">· tú: ${tb.lvl}</span>`:""}</div>`:`<div class="muted">Nivel de mando: en blanco en el protocolo.</div>`}
-        ${r[5]?`<div class="muted" style="font-size:.88rem">${esc(r[5])}</div>`:""}</div>
+        ${r[5]?(tb.deck==="tren"&&rs.obs?`<div><span class="eyebrow">Observaciones</span> ${rs.obs.ok?"✓":"✗"} <span class="muted" style="font-size:.85rem">(${rs.obs.hit.length} de ${rs.obs.ks.length} claves${rs.obs.ks.length>rs.obs.hit.length?" · te faltó: "+esc(rs.obs.ks.filter(k=>!rs.obs.hit.includes(k)).join(", ")):""})</span><div style="font-size:.9rem">${hilite(r[5],rs.obs.ks)}</div></div>`:`<div class="muted" style="font-size:.88rem">${esc(r[5])}</div>`):""}</div>
         ${rs.self?`<div class="row"><button class="btn" id="tbno">No lo sabía</button><button class="btn primary" id="tbyes">Lo sabía</button></div>`:`<div class="row"><button class="btn primary" id="tbnext">Siguiente</button></div>`}`;
     }
   }else if(c&&c.opts){
@@ -1271,21 +1306,26 @@ function vTablas(el){
   ${tb.deck==="tren"||tb.deck==="mando"||tb.deck==="lk:PAM IF"?`<div class="chips"><button class="chip" id="tball" aria-pressed="${!tb.only}">${tb.deck==="lk:PAM IF"?"Todos los lugares":"Todo el protocolo"}</button><button class="chip" id="tbex" aria-pressed="${tb.only}">Solo lo que salió en examen</button></div>`:""}
   <div class="row" style="justify-content:space-between"><span class="eyebrow">${tbDeck().length} preguntas · las falladas salen más</span><span class="mono muted">Sesión: ${tb.ok} ✓ · ${tb.bad} ✗</span></div>
   <div class="panel stack">${card}</div>
+  ${(()=>{const D=tbDeck0(),parts=s=>[s.bT?"tren ✗"+s.bT:"",s.bM?"mando ✗"+s.bM:"",s.bO?"observaciones ✗"+s.bO:""].filter(Boolean).join(" · ");
+    return failHtml(failRows(D.map(c=>{const s=prog.tab[c.key]||{};return{label:tbLabel(c),sub:parts(s),ok:s.ok||0,bad:s.bad||0,last:s.last}})),D.filter(c=>prog.tab[c.key]).length,"tbfail",!!tb.fails)})()}
   <details class="panel" id="tbtab"><summary><b>Tabla de estudio</b></summary><div class="stack" style="margin-top:12px">
     <input type="search" id="tbq" placeholder="Buscar: metro, ascensor, 3330, SB…" value="${esc(tb.q)}" aria-label="Buscar en la tabla">
     <div style="overflow-x:auto" id="tbrows"></div></div></details>`;
-  el.querySelectorAll("[data-dk]").forEach(b=>b.onclick=()=>{tb.deck=b.dataset.dk;tb.cur=null;tb.q="";render()});
+  el.querySelectorAll("[data-dk]").forEach(b=>b.onclick=()=>{tb.deck=b.dataset.dk;tb.cur=null;tb.q="";tb.obs="";render()});
   const q=(id,fn)=>{const x=el.querySelector(id);if(x)x.onclick=fn};
   q("#tball",()=>{tb.only=false;tb.cur=null;render()});q("#tbex",()=>{tb.only=true;tb.cur=null;render()});
   el.querySelectorAll("[data-lv]").forEach(b=>b.onclick=()=>{tb.lvl=b.dataset.lv;el.querySelectorAll("[data-lv]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));if(tb.deck==="mando"){const g=$("#tbgo");if(g)g.click()}});
+  {const ob=el.querySelector("#tbobs");if(ob)ob.oninput=()=>{tb.obs=ob.value}}
+  failBind(el,"tbfail",()=>{tb.fails=!tb.fails;tb.cur=null;render()});
   const inp=el.querySelector("#tbin");if(inp){inp.oninput=()=>{tb.typed=inp.value};if(inp.tagName==="INPUT")inp.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();const g=$("#tbgo");if(g)g.click()}}}
   q("#tbgo",()=>{const r=c.r;
-    if(tb.deck==="tren"&&isMulti(r)){tb.res={self:true};tb.phase="done";render();return}
+    const obs=tb.deck==="tren"&&r[5]?obsGrade(tb.obs,r[5]):null;
+    if(tb.deck==="tren"&&isMulti(r)){tb.res={self:true,obs};tb.phase="done";render();return}
     if(tb.deck==="tren"&&!tb.typed.trim()){inp.focus();return}
     if(r[4]&&!tb.lvl){const ch=el.querySelector("[data-lv]");if(ch)ch.focus();return}
     const diff=tb.deck==="tren"?trenDiff(tb.typed,r[3]):{ok:true,miss:[],extra:[]};
-    const ok=diff.ok&&(!r[4]||tb.lvl===r[4]);tb.res={ok,diff};tb.phase="done";tbMark(ok);render();const n=$("#tbnext");if(n)n.focus({preventScroll:true})});
-  q("#tbyes",()=>{const ok=!c.r[4]||tb.lvl===c.r[4];tbMark(ok);tbNext()});q("#tbno",()=>{tbMark(false);tbNext()});
+    const mOk=!r[4]||tb.lvl===r[4],ok=diff.ok&&mOk&&(!obs||obs.ok);tb.res={ok,diff,obs};tb.phase="done";tbMark(ok,{t:tb.deck==="tren"?diff.ok:undefined,m:r[4]?mOk:undefined,o:obs?obs.ok:undefined});render();const n=$("#tbnext");if(n)n.focus({preventScroll:true})});
+  q("#tbyes",()=>{const m=!c.r[4]||tb.lvl===c.r[4],o=!(tb.res&&tb.res.obs)||tb.res.obs.ok;tbMark(m&&o,{m:c.r[4]?m:undefined,o:tb.res&&tb.res.obs?o:undefined});tbNext()});q("#tbno",()=>{tbMark(false,{t:false});tbNext()});
   q("#tbnext",tbNext);
   el.querySelectorAll("[data-j]").forEach(b=>b.onclick=()=>{if(tb.phase!=="ask")return;tb.choice=+b.dataset.j;tb.phase="done";tbMark(c.opts[tb.choice].ok);render();const n=$("#tbnext");if(n)n.focus({preventScroll:true})});
   if(tb.deck==="mando"&&!done){} // el nivel se elige con los chips y se comprueba con el botón
@@ -1327,7 +1367,8 @@ const isProc=c=>/^\d\.\d\d$/.test(c);
 let df={mode:"t2d",scope:"proc",cur:null,phase:"ask",typed:"",ok:0,bad:0,q:"",res:null};
 const DF_MODES={t2d:"Término → definición",d2t:"Definición → término"};
 function dfScopes(){const codes=[...new Set(DEFS.map(d=>d.code))];return[["proc","PROCOPs"],["todo","Todo"],...codes.filter(c=>!isProc(c)).map(c=>[c,c])].concat(codes.filter(isProc).map(c=>[c,c]))}
-function dfDeck(){return DEFS.filter(d=>df.scope==="todo"||(df.scope==="proc"?isProc(d.code):d.code===df.scope))}
+function dfDeck(){const D=DEFS.filter(d=>df.scope==="todo"||(df.scope==="proc"?isProc(d.code):d.code===df.scope));
+  if(df.fails){const f=D.filter(d=>((prog.defs[df.mode+":"+d.key]||{}).bad||0)>0);if(f.length)return f}return D}
 function dfPick(){
   let D=dfDeck();if(!D.length)return null;if(df.cur&&D.length>3)D=D.filter(d=>d.key!==df.cur.key);
   const w=D.map(d=>{const s=prog.defs[df.mode+":"+d.key];return !s?1.5:Math.max(.25,1+2*s.bad-.7*s.ok)});
@@ -1375,12 +1416,14 @@ function vDefs(el){
   </div>
   <div class="row" style="justify-content:space-between"><span class="eyebrow">${seen} / ${deck.length} vistas · las falladas salen más</span><span class="mono muted">Sesión: ${df.ok} ✓ · ${df.bad} ✗</span></div>
   <div class="panel stack">${card}</div>
+  ${(()=>{const all=DEFS.filter(d=>df.scope==="todo"||(df.scope==="proc"?isProc(d.code):d.code===df.scope));return failHtml(failRows(all.map(d=>{const s=prog.defs[df.mode+":"+d.key]||{};return{label:d.term,sub:d.code+" · "+DF_MODES[df.mode],ok:s.ok||0,bad:s.bad||0,last:s.last}})),all.filter(d=>prog.defs[df.mode+":"+d.key]).length,"dffail",!!df.fails)})()}
   <details class="panel" id="dftab"><summary><b>Todas las definiciones</b> <span class="muted">· ${deck.length} con este filtro</span></summary><div class="stack" style="margin-top:12px">
     <input type="search" id="dfq" placeholder="Buscar término o palabra: puesto base, ERA, garaje…" value="${esc(df.q)}" aria-label="Buscar definición">
     <div id="dfrows" class="stack" style="gap:6px"></div></div></details>`;
   el.querySelectorAll("[data-dm]").forEach(b=>b.onclick=()=>{df.mode=b.dataset.dm;df.cur=null;df.rep=0;df.phase="ask";df.typed="";render()});
   el.querySelectorAll("[data-ds]").forEach(b=>b.onclick=()=>{df.scope=b.dataset.ds;df.cur=null;df.rep=0;df.phase="ask";df.typed="";render()});
   const q=(id,fn)=>{const x=el.querySelector(id);if(x)x.onclick=fn};
+  failBind(el,"dffail",()=>{df.fails=!df.fails;df.cur=null;df.rep=0;df.phase="ask";df.typed="";render()});
   const inp=el.querySelector("#dfin");if(inp)inp.oninput=()=>{df.typed=inp.value};
   q("#dfshow",()=>{df.phase="shown";render()});
   q("#dfyes",()=>{dfMark(true);dfNext()});q("#dfno",()=>{dfMark(false);df.phase="done";render()});
@@ -1492,7 +1535,7 @@ function realBuild(){
   else one("Pautas de trabajo",.75,l=>isP(l)&&l.category==="pautas"&&l.who!=="mando");
   // el resto, al azar entre casi cualquier lista: normalmente 1 o 2, alguna vez 3
   const nExtra=(r=>r<.4?1:r<.88?2:3)(Math.random());
-  const pool=L.filter(l=>(isP(l)||l.code==="PAM IF")&&l.category!=="funciones"&&l.category!=="definiciones"&&(l.category!=="otros"||EXAM[l.id])&&l.who!=="mando"&&!(l.role&&l.category==="anexo")
+  const pool=L.filter(l=>(isP(l)||l.code==="PAM IF")&&l.category!=="funciones"&&l.category!=="definiciones"&&l.category!=="otros"&&l.who!=="mando"&&!(l.role&&l.category==="anexo")
     &&!/glosario|abreviaturas|ficha-resumen|anexo1-|ficha-material|parques|difusion|normativa|ambito|exclusiones|telefon|correos|directorio|kit|apicultores|contrata/.test(l.id)
     &&l.items.length>=2&&l.items.length<=12&&!qs.some(q=>q.id===l.id));
   for(const c of shuffle(pool)){if(qs.filter(q=>q.extra).length>=nExtra)break;if(qs.some(q=>q.id===c.id))continue;qs.push({t:"list",id:c.id,sec:secOf(c),val:.5,extra:true})}
@@ -1573,7 +1616,7 @@ function realSave(s){
   s.qs.forEach((q,i)=>{const g=s.g[i];
     if(q.t==="list")grade(q.id,g.filter(x=>x.hit).length/g.length,g.map((x,k)=>x.hit?-1:k).filter(k=>k>=0));
     else if(q.t==="defs")q.keys.forEach((k,j)=>{const key="t2d:"+k,o=prog.defs[key]||{ok:0,bad:0};g[j]?o.ok++:o.bad++;o.last=Date.now();prog.defs[key]=o});
-    else if(q.t==="nip")q.nums.forEach((n,j)=>{const key="mm:n2r:"+n,o=prog.mmpp[key]||{box:0};o.box=g[j]?Math.min(6,(o.box||0)+1):1;o.due=Date.now()+(g[j]?INTERVALS[o.box]*DAY-3600000:600000);o.last=Date.now();prog.mmpp[key]=o});
+    else if(q.t==="nip")q.nums.forEach((n,j)=>{const key="mm:n2r:"+n,o=prog.mmpp[key]||{box:0};o.ok=(o.ok||0)+(g[j]?1:0);o.bad=(o.bad!==undefined?o.bad:failN(o))+(g[j]?0:1);o.box=g[j]?Math.min(6,(o.box||0)+1):1;o.due=Date.now()+(g[j]?INTERVALS[o.box]*DAY-3600000:600000);o.last=Date.now();prog.mmpp[key]=o});
     else if(q.t==="tren")q.rows.forEach((ri,j)=>{const key="tren:"+ri,o=prog.tab[key]||{ok:0,bad:0};g[j]?o.ok++:o.bad++;o.last=Date.now();prog.tab[key]=o});
   });
   const secs={};s.qs.forEach((q,i)=>{const x=secs[q.sec]=secs[q.sec]||[0,0];x[0]+=qGot(q,s.g[i]);x[1]+=q.val});
