@@ -81,6 +81,9 @@ textarea{width:100%;min-height:220px;background:var(--panel);border:1px solid va
 .hero{background:var(--panel);border:1px solid var(--line);border-left:6px solid var(--red);border-radius:6px;padding:18px}
 .hero h2{font-size:1.7rem}
 /* banco */
+.lrow{display:flex;gap:6px;align-items:stretch}.lrow .lcard{flex:1;min-width:0}
+.lx{flex:0 0 auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:0 10px;font:600 .78rem var(--f-body);color:var(--muted);cursor:pointer}
+.lx:hover{color:var(--bad);border-color:var(--bad)}
 .lcard{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:11px 14px;cursor:pointer;text-align:left;width:100%}
 .lcard:hover{border-color:var(--muted)}
 .lcard .n{font-family:var(--f-display);font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums;min-width:2ch;text-align:center}
@@ -156,6 +159,33 @@ ol.items li.own .it-txt{font-weight:600}
 .hdone .hdet{color:var(--muted)}
 .hrow.hpart{background:color-mix(in srgb,var(--hivis) 14%,var(--panel));border-color:color-mix(in srgb,var(--hivis) 60%,var(--line))}
 .hrow.hpart .hchk{border-color:var(--hivis);color:var(--fg);font-weight:700}
+/* gráficas */
+.gbars{display:flex;flex-direction:column;gap:6px}
+.gbar{display:grid;grid-template-columns:minmax(90px,34%) 1fr auto;gap:8px;align-items:center;cursor:default}
+.gbar[data-go]{cursor:pointer}.gbar[data-go]:hover .gl{text-decoration:underline}
+.gl{font-size:.86rem;line-height:1.2;min-width:0;overflow:hidden;text-overflow:ellipsis}.gl small{display:block;color:var(--muted);font-size:.74rem}
+.gt{position:relative;height:14px;background:var(--sunk);border-radius:4px}
+.gt i{position:absolute;left:0;top:0;bottom:0;border-radius:0 4px 4px 0}
+.gt b{position:absolute;left:0;bottom:-4px;height:2px;background:var(--muted);border-radius:2px}
+.gv{font:700 .85rem var(--f-mono);text-align:right;white-space:nowrap;min-width:46px}.gv small{display:block;font-weight:400;color:var(--muted);font-size:.7rem}
+.glegend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--muted);align-items:center}
+.glegend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.gstack{display:flex;gap:2px;height:22px;border-radius:4px;overflow:hidden}.gstack i{min-width:3px}
+.gheat{border-collapse:separate;border-spacing:2px;font-size:.75rem}
+.gheat th{font-weight:600;color:var(--muted);white-space:nowrap;padding:2px 4px;text-align:left}
+.gheat thead th{text-align:center;font-family:var(--f-mono)}
+.gheat td{min-width:34px;height:26px;text-align:center;font:600 .75rem var(--f-mono);border-radius:3px;border:1px solid var(--line)}
+.gheat td.na{border:0}
+.ggrad{display:inline-block;width:90px;height:10px;border-radius:2px;background:linear-gradient(90deg,color-mix(in srgb,var(--ok) 15%,var(--panel)),var(--ok))}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media (max-width:560px){.g2{grid-template-columns:1fr}}
+.gmini{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:.86rem}
+.gmini li{cursor:pointer}.gmini li span{display:inline}.gmini li b{float:right;font-family:var(--f-mono)}.gmini small{color:var(--muted)}
+.gcols{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;height:130px;align-items:end}
+.gcol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px}
+.gcol i{width:70%;border-radius:4px 4px 0 0;min-height:1px}.gn{font:600 .68rem var(--f-mono)}.gd{font-size:.68rem;color:var(--muted)}
+.gline{width:100%;max-width:560px;height:auto}
+.gact{display:flex;gap:3px}.gwk{display:flex;flex-direction:column;gap:3px}.gwk i{width:16px;height:16px;border-radius:3px}
+section.panel h3{font-size:1.25rem}
 /* monigote */
 .avatar{position:relative;background:none;border:0;padding:0 0 6px;cursor:pointer;flex:0 0 auto;line-height:0;color:inherit}
 .avatar:focus-visible{outline:2px solid var(--hivis);outline-offset:2px;border-radius:8px}
@@ -225,9 +255,9 @@ ol.items li.own .it-txt{font-weight:600}
 @media (min-width:561px){
   .nl{display:none}.ns{display:inline}
   nav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}nav::-webkit-scrollbar{display:none}
-  header.top nav button{font-size:.95rem;padding:4px 6px 6px;letter-spacing:.02em;flex:none}
+  header.top nav button{font-size:.88rem;padding:4px 5px 6px;letter-spacing:.01em;flex:none}
 }
-@media (min-width:561px) and (max-width:820px){header.top nav button{font-size:.84rem;padding:4px 4px 6px;letter-spacing:0}.brand>span:not(.sync){display:none}}
+@media (min-width:561px) and (max-width:820px){header.top nav button{font-size:.8rem;padding:4px 3px 6px;letter-spacing:0}.brand>span:not(.sync){display:none}}
 @media (max-width:560px){.brand h1{font-size:1.3rem}.brand>span{display:none}.top .bar{padding-block:6px 0}}
 .simnip{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 10px;min-height:42px}
 @media (max-width:520px){.kpis{grid-template-columns:repeat(3,1fr)}.kpi b{font-size:1.6rem}.hero h2{font-size:1.45rem}}
@@ -240,6 +270,7 @@ ol.items li.own .it-txt{font-weight:600}
     <nav id="nav" aria-label="Secciones">
       <button data-v="hoy" aria-current="true">Hoy</button>
       <button data-v="inicio">Inicio</button>
+      <button data-v="graf"><span class="nl">Gráficas</span><span class="ns">Gráficas</span></button>
       <button data-v="rapido">Rápido</button>
       <button data-v="banco"><span class="nl">Banco de listas</span><span class="ns">Banco</span></button>
       <button data-v="rol"><span class="nl">Por rol</span><span class="ns">Roles</span></button>
@@ -297,7 +328,8 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",
 const norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/(\b[a-z])\.(?=[a-z]\b)/g,"$1").replace(/[^a-z0-9ñ]+/g," ").trim();
 
 /* ---------- persistencia ---------- */
-function loadLocal(){try{const r=localStorage.getItem("procop-prog");if(r)prog=JSON.parse(r)}catch(e){}prog.lists=prog.lists||{};prog.facts=prog.facts||{};prog.mmpp=prog.mmpp||{};prog.quick=prog.quick||{};prog.tab=prog.tab||{};prog.defs=prog.defs||{};prog.rev=prog.rev||{};prog.mnemo=prog.mnemo||{}}
+function loadLocal(){try{const r=localStorage.getItem("procop-prog");if(r)prog=JSON.parse(r)}catch(e){}prog.lists=prog.lists||{};prog.facts=prog.facts||{};prog.mmpp=prog.mmpp||{};prog.quick=prog.quick||{};prog.tab=prog.tab||{};prog.defs=prog.defs||{};prog.rev=prog.rev||{};prog.mnemo=prog.mnemo||{};prog.imp=prog.imp||{};prog.alog=prog.alog||[];
+  if(!prog.alogInit){Object.entries(prog.lists).forEach(([id,s])=>{if(s&&s.last&&s.lastScore!==undefined&&!prog.alog.some(a=>a.id===id&&a.t===s.last))prog.alog.push({t:s.last,id,r:Math.round(s.lastScore*100)/100})});prog.alog.sort((a,b)=>a.t-b.t);prog.alogInit=1;try{localStorage.setItem("procop-prog",JSON.stringify(prog))}catch(e){}}}
 let saveT=null;
 function save(){
   try{localStorage.setItem("procop-prog",JSON.stringify(prog))}catch(e){}
@@ -306,7 +338,8 @@ function save(){
 }
 /* fusiona un progreso externo: en cada registro gana el más reciente */
 function mergeProg(r){let n=0;
-  for(const sec of ["lists","facts","mmpp","quick","tab","defs","rev","mnemo"]){prog[sec]=prog[sec]||{};for(const [k,v] of Object.entries((r&&r[sec])||{})){const mine=prog[sec][k];if(!mine||(v.last||0)>(mine.last||0)){prog[sec][k]=v;n++}}}
+  if(r&&Array.isArray(r.alog)){prog.alog=prog.alog||[];const ks=new Set(prog.alog.map(a=>a.t+"|"+a.id));r.alog.forEach(a=>{if(!ks.has(a.t+"|"+a.id)){prog.alog.push(a);n++}});prog.alog.sort((a,b)=>a.t-b.t);if(prog.alog.length>5000)prog.alog=prog.alog.slice(-5000)}
+  for(const sec of ["lists","facts","mmpp","quick","tab","defs","rev","mnemo","imp"]){prog[sec]=prog[sec]||{};for(const [k,v] of Object.entries((r&&r[sec])||{})){const mine=prog[sec][k];if(!mine||(v.last||0)>(mine.last||0)){prog[sec][k]=v;n++}}}
   ["cap","repOrder","hideMando","hideN","simCfg"].forEach(k=>{if(prog[k]===undefined&&r&&r[k]!==undefined)prog[k]=r[k]});
   if(r&&r.plan){const wasEmpty=!prog.plan||!prog.plan.ptr;const p=plan(),q=r.plan;if(wasEmpty)p.ptr={};p.since=p.since||{};p.log=p.log||{};
     const qp=Object.assign({},q.ptr||{});let qv=q.vlog||[],qpart=q.part;if(!q.v2&&qp.procop!=null){const c=codeOf(OLD_PROCOP[qp.procop%OLD_PROCOP.length]);const ni=TRACKS.procop.items.findIndex(x=>codeOf(x)===c);qp.procop=ni<0?0:ni}
@@ -327,7 +360,7 @@ async function pushRemote(){
   if(!db||!uid)return;
   if(pushing){pendingPush=true;return}
   pushing=true;
-  try{await db.doc("data/users/"+uid+"/state/progress").set({lists:prog.lists,facts:prog.facts,mmpp:prog.mmpp,quick:prog.quick,tab:prog.tab,defs:prog.defs,rev:prog.rev||{},mnemo:prog.mnemo||{},sims:prog.sims||[],plan:prog.plan||{},cap:prog.cap===undefined?25:prog.cap,order:prog.repOrder||"mezcla",hideMando:prog.hideMando===false?false:true,t:Date.now()});setSync("guardado en tu cuenta")}
+  try{await db.doc("data/users/"+uid+"/state/progress").set({lists:prog.lists,facts:prog.facts,mmpp:prog.mmpp,quick:prog.quick,tab:prog.tab,defs:prog.defs,rev:prog.rev||{},mnemo:prog.mnemo||{},imp:prog.imp||{},alog:prog.alog||[],sims:prog.sims||[],plan:prog.plan||{},cap:prog.cap===undefined?25:prog.cap,order:prog.repOrder||"mezcla",hideMando:prog.hideMando===false?false:true,t:Date.now()});setSync("guardado en tu cuenta")}
   catch(e){setSync("guardado solo en este dispositivo")}
   pushing=false;if(pendingPush){pendingPush=false;pushRemote()}
 }
@@ -351,7 +384,7 @@ async function initRemote(){
       for(const [k,v] of Object.entries(r.tab||{})){const mine=prog.tab[k];if(!mine||(v.last||0)>(mine.last||0))prog.tab[k]=v}
       for(const [k,v] of Object.entries(r.defs||{})){const mine=prog.defs[k];if(!mine||(v.last||0)>(mine.last||0))prog.defs[k]=v}
       if(Array.isArray(r.sims)){prog.sims=prog.sims||[];r.sims.forEach(x=>{if(!prog.sims.some(y=>y.id===x.id))prog.sims.push(x)})}
-      if(r.plan)mergeProg({plan:r.plan});if(r.rev)mergeProg({rev:r.rev});if(r.mnemo)mergeProg({mnemo:r.mnemo});
+      if(r.plan)mergeProg({plan:r.plan});if(r.rev)mergeProg({rev:r.rev});if(r.mnemo)mergeProg({mnemo:r.mnemo});if(r.imp)mergeProg({imp:r.imp});if(r.alog)mergeProg({alog:r.alog});
       if(prog.hideMando===undefined&&r.hideMando===false)prog.hideMando=false;
       if(prog.cap===undefined&&typeof r.cap==="number")prog.cap=r.cap;
       if(!prog.repOrder&&r.order&&r.order!=="func")prog.repOrder=r.order;
@@ -365,14 +398,25 @@ async function initRemote(){
 /* ---------- repaso espaciado ---------- */
 const st=id=>prog.lists[id];
 const isDue=id=>{const s=st(id);return !!s&&s.due<=Date.now()};
+/* ---------- importancia: cada cuánto vuelve una lista ---------- */
+const IMP_MULT={alta:.6,normal:1,baja:1.8},IMP_LBL={alta:"Alta",normal:"Normal",baja:"Baja"};
+function impDefault(l){if(!l)return"normal";if(nucleo(l))return"alta";if(l.code==="MAN")return l.prio===1?"normal":"baja";
+  if(l.items.length>=13)return"baja";if(/^(anexo|recursos|otros)$/.test(l.category))return"baja";
+  if(l.ordered&&/^(actuaciones|pautas)$/.test(l.category)&&l.items.length<=10)return"alta";return"normal"}
+const impSet=l=>!!(prog.imp&&prog.imp[l.id]&&prog.imp[l.id].v);
+const impOf=l=>impSet(l)?prog.imp[l.id].v:impDefault(l);
+function impHtml(l){const v=impOf(l);return`<div class="row" style="gap:6px;align-items:center"><span class="eyebrow">Importancia</span><div class="chips">${["alta","normal","baja"].map(k=>`<button class="chip" data-imp="${k}" aria-pressed="${v===k}">${IMP_LBL[k]}</button>`).join("")}</div><span class="muted" style="font-size:.8rem">${impSet(l)?"elegida por ti":"sugerida por la app"} · ${v==="alta"?"vuelve antes":v==="baja"?"vuelve más tarde":"ritmo normal"}</span></div>`}
+function impBind(el,l,after){el.querySelectorAll("[data-imp]").forEach(b=>b.onclick=()=>{prog.imp=prog.imp||{};prog.imp[l.id]={v:b.dataset.imp,last:Date.now()};
+  const s=prog.lists[l.id];if(s&&s.box>0&&s.last){s.due=s.last+daysFor(s.box,l)*DAY-3600000}save();after?after():render()})}
+const daysFor=(box,l)=>box<=0?0:Math.min(90,Math.max(1,Math.round(INTERVALS[box]*IMP_MULT[impOf(l)])));
 function grade(id,ratio,missIdx){
   const s=prog.lists[id]||{box:0,due:0,best:0,tries:0,miss:{}};
   if(ratio>=0.9)s.box=Math.min(6,(s.box||0)+1);
   else if(ratio>=0.6)s.box=Math.max(1,s.box||1);
   else s.box=1;
-  s.due=Date.now()+INTERVALS[s.box]*DAY-3600000;
+  s.due=Date.now()+daysFor(s.box,BYID[id])*DAY-3600000;
   s.best=Math.max(s.best||0,ratio);s.lastScore=ratio;s.last=Date.now();s.tries=(s.tries||0)+1;
-  s.miss=s.miss||{};missIdx.forEach(i=>s.miss[i]=(s.miss[i]||0)+1);
+  s.miss=s.miss||{};missIdx.forEach(i=>s.miss[i]=(s.miss[i]||0)+1);logAttempt(id,ratio);
   prog.lists[id]=s;save();
 }
 function boxClass(id){const s=st(id);return s?"b"+Math.max(1,s.box):""}
@@ -423,7 +467,7 @@ let view="hoy",ctx={};
 document.getElementById("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;go(b.dataset.v)});
 function go(v,c){view=v;ctx=c||{};document.querySelectorAll("#nav button").forEach(b=>b.setAttribute("aria-current",String(b.dataset.v===v||(v==="lista"&&b.dataset.v==="banco")||(v==="prueba"&&b.dataset.v===(ctx.from||"banco")))));stopTimer();render();window.scrollTo({top:0})}
 function render(){
-  const f={hoy:vHoy,revisar:vRevisar,inicio:vInicio,banco:vBanco,lista:vLista,prueba:vPrueba,simulacro:vSimulacro,rapido:vRapido,rol:vRol,tablas:vTablas,defs:vDefs,mmpp:vMmpp,datos:vDatos,metodo:vMetodo}[view];
+  const f={hoy:vHoy,graf:vGraf,revisar:vRevisar,inicio:vInicio,banco:vBanco,lista:vLista,prueba:vPrueba,simulacro:vSimulacro,rapido:vRapido,rol:vRol,tablas:vTablas,defs:vDefs,mmpp:vMmpp,datos:vDatos,metodo:vMetodo}[view];
   app.innerHTML="";const el=document.createElement("div");el.className="stack fade";app.appendChild(el);f(el);
 }
 
@@ -443,10 +487,40 @@ const WEIGHTS=[
 ["PAM IF / PEIF: grupos locales, niveles, situaciones","0,5","En la app","ok"],
 ["NIP de mercancías peligrosas","0,5","En la app (MMPP)","ok"],
 ["Sanitario IVASPE (no cayó en estos dos)","0","En la app (SAN)","ok"]];
+/* ---------- estadísticas: dónde vas peor ---------- */
+let statTab="temas";
+function statsData(){
+  const V=L.filter(visible),now=Date.now();
+  const agg=key=>{const m=new Map();V.forEach(l=>{const k=key(l);if(!m.has(k))m.set(k,{k,n:0,seen:0,sum:0,bad:0,ok:0,due:0});const a=m.get(k),s=st(l.id);a.n++;
+    if(s&&s.lastScore!==undefined){a.seen++;a.sum+=s.lastScore;if(s.lastScore<.6)a.bad++;if(s.box>=4)a.ok++;if(s.due<=now)a.due++}});
+    return[...m.values()].map(a=>({...a,avg:a.seen?a.sum/a.seen:null}))};
+  const temas=agg(l=>l.code).sort((a,b)=>(a.avg===null)-(b.avg===null)||(a.avg??1)-(b.avg??1)||b.bad-a.bad);
+  const cats=agg(l=>CAT[l.category]||l.category).sort((a,b)=>(a.avg===null)-(b.avg===null)||(a.avg??1)-(b.avg??1));
+  const seenL=V.filter(l=>{const s=st(l.id);return s&&s.lastScore!==undefined});
+  const flojas=seenL.slice().sort((a,b)=>st(a.id).lastScore-st(b.id).lastScore||Object.values(st(b.id).miss||{}).reduce((x,y)=>x+y,0)-Object.values(st(a.id).miss||{}).reduce((x,y)=>x+y,0)).filter(l=>st(l.id).lastScore<.9).slice(0,12);
+  const puntos=[];seenL.forEach(l=>{const m=st(l.id).miss||{};Object.entries(m).forEach(([i,n])=>{if(n>=2&&l.items[i])puntos.push({l,i:+i,n})})});
+  puntos.sort((a,b)=>b.n-a.n);
+  return{temas,cats,flojas,puntos:puntos.slice(0,15),seen:seenL.length,total:V.length};
+}
+const pctCell=v=>v===null?'<span class="muted">—</span>':`<b style="color:${v<.6?"var(--bad)":v<.85?"var(--fg)":"var(--ok)"}">${Math.round(v*100)}%</b>`;
+function statsHtml(){const d=statsData();
+  const tabs=`<div class="chips" role="group" aria-label="Estadística">${[["temas","Por tema"],["cats","Por tipo de lista"],["flojas","Listas más flojas"],["puntos","Puntos que se te escapan"]].map(([k,v])=>`<button class="chip" data-st="${k}" aria-pressed="${statTab===k}">${v}</button>`).join("")}</div>`;
+  let body="";
+  if(statTab==="temas"||statTab==="cats"){const rows=statTab==="temas"?d.temas:d.cats;
+    body=`<div style="overflow-x:auto"><table class="wt"><thead><tr><th style="text-align:left">${statTab==="temas"?"Tema":"Tipo"}</th><th>Media</th><th>Falladas</th><th>Vistas</th></tr></thead><tbody>${rows.map(a=>`<tr ${statTab==="temas"?`data-code="${esc(a.k)}" style="cursor:pointer"`:""}><td>${statTab==="temas"?`<span class="plate">${esc(a.k)}</span>`:esc(a.k)}<div class="meter" style="margin-top:4px"><i class="m-ok" style="width:${(100*a.ok/a.n).toFixed(1)}%"></i><i class="m-mid" style="width:${(100*(a.seen-a.ok-a.bad)/a.n).toFixed(1)}%"></i><i class="m-bad" style="width:${(100*a.bad/a.n).toFixed(1)}%"></i></div></td><td style="text-align:center">${pctCell(a.avg)}</td><td class="mono" style="text-align:center">${a.bad||""}</td><td class="mono muted" style="text-align:center;white-space:nowrap">${a.seen}/${a.n}</td></tr>`).join("")}</tbody></table></div>
+    <p class="muted" style="margin:0;font-size:.82rem">Media = nota del último intento de cada lista vista. Ordenado de peor a mejor; abajo lo que aún no has empezado. Barra: verde dominadas, amarillo en curso, rojo falladas.${statTab==="temas"?" Toca un tema para abrirlo en el banco.":""}</p>`}
+  else if(statTab==="flojas"){body=d.flojas.length?`<ol class="items">${d.flojas.map(l=>`<li data-id="${l.id}" style="cursor:pointer"><div class="it-txt"><b>${esc(l.title)}</b> <span class="muted">· ${l.code} · último ${Math.round(100*st(l.id).lastScore)}%</span></div></li>`).join("")}</ol><div class="row"><button class="btn primary" id="stFlojas">Practicar estas ${d.flojas.length}</button></div>`:'<p class="muted" style="margin:0">Aún no hay listas flojas. Cuando practiques, aquí salen las de nota más baja en el último intento.</p>'}
+  else{body=d.puntos.length?`<ol class="items">${d.puntos.map(x=>`<li data-id="${x.l.id}" style="cursor:pointer"><div class="it-txt">${esc(x.l.items[x.i].text)}<div class="it-actions">${esc(x.l.title)} · ${x.l.code} · olvidado ${x.n} veces</div></div></li>`).join("")}</ol>`:'<p class="muted" style="margin:0">Todavía no hay puntos que hayas olvidado 2 veces o más.</p>'}
+  return`<section class="panel stack"><div class="row" style="justify-content:space-between"><h3 style="font-size:1.35rem">Dónde vas peor</h3><span class="eyebrow">${d.seen} de ${d.total} listas vistas</span></div>${tabs}${body}</section>`}
+function statsBind(el){el.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>{statTab=b.dataset.st;render()});
+  el.querySelectorAll("tr[data-code]").forEach(t=>t.onclick=()=>go("banco",{code:t.dataset.code}));
+  el.querySelectorAll("li[data-id]").forEach(t=>t.onclick=()=>go("lista",{id:t.dataset.id}));
+  const f=el.querySelector("#stFlojas");if(f)f.onclick=()=>startQueue(statsData().flojas.map(l=>l.id),"inicio")}
 function roundGap(code){ // días hasta que este tema te vuelva a tocar en la vuelta (null si no va en la vuelta)
   try{const it=TRACKS.procop.items,L_=it.length,ptr=(plan().ptr.procop||0)%L_,idx=it.findIndex(x=>codeOf(x)===code);if(idx<0)return null;return Math.round(((idx-ptr+L_)%L_)*procPace()*7/5)}catch(e){return null}}
 function smartScore(l){const s=st(l.id);let sc=Math.max(0,(Date.now()-s.due)/DAY);
   if(s.lastScore!==undefined&&s.lastScore<0.6)sc+=6;
+  const im=impOf(l);if(im==="alta")sc+=4;else if(im==="baja")sc-=4;
   const g=roundGap(l.code);if(g!==null){if(g<=2)sc-=8;else sc+=Math.min(6,g/3)}
   return sc}
 function vInicio(el){
@@ -493,17 +567,8 @@ function vInicio(el){
     <div class="kpi"><b>${coreMaster.length}</b><span>dominadas (caja 4+)</span></div>
     <div class="kpi"><b>${seen.length}</b><span>listas practicadas en total</span></div>
   </div>
-  <section class="panel stack">
-    <div class="row" style="justify-content:space-between"><h3 style="font-size:1.35rem">Lo que pesa en el examen</h3><span class="eyebrow">Últimos 2 exámenes · sobre 10</span></div>
-    <div style="overflow-x:auto"><table class="wt"><tbody>${WEIGHTS.map(([n,p,s,c])=>`<tr><td>${esc(n)}<div class="wbar" style="width:${(parseFloat(p.replace(",","."))/4*100).toFixed(0)}%"></div></td><td class="pts">${p}</td><td style="text-align:right"><span class="pill ${c}">${esc(s)}</span></td></tr>`).join("")}</tbody></table></div>
-    <p class="muted" style="margin:0;font-size:.85rem">En los dos exámenes, todas las funciones preguntadas fueron de bomberos conductores, zapadores y equipos, nunca de mandos. Por eso las listas de Cabo, Sargento, CECOM, etc. están ocultas (se pueden mostrar en el banco).</p>
-  </section>
-  <div class="eyebrow">Por procedimiento · verde dominada · amarillo en curso · rojo fallada</div>
-  <div class="grid-p" id="pg"></div>`;
-  const pg=el.querySelector("#pg");
-  P.forEach(p=>{const s=procStats(p.code);const b=document.createElement("button");b.className="pcard";
-    b.innerHTML=`<div class="row" style="justify-content:space-between"><span class="plate">${p.code}</span><span class="mono muted" style="font-size:.78rem">${s.n} listas · ${s.items} pts</span></div><div class="t">${esc(shortTitle(p.title))}</div>${meter(s)}<div class="mono muted" style="font-size:.75rem">${s.due?s.due+" pendientes · ":""}${s.ok} dominadas</div>`;
-    b.onclick=()=>go("banco",{code:p.code});pg.appendChild(b)});
+  ${statsHtml()}`;
+  statsBind(el);
   const q=(id,fn)=>{const x=el.querySelector(id);if(x)x.onclick=fn};
   q("#goDue",()=>startQueue(today.map(l=>l.id),"inicio"));
   q("#goMore",()=>startQueue(due.slice(0,10).map(l=>l.id),"inicio"));
@@ -541,18 +606,26 @@ function vBanco(el){
   const xb=(label,on,fn)=>{const b=document.createElement("button");b.className="chip";b.textContent=label;b.setAttribute("aria-pressed",String(on));b.onclick=fn;fx.appendChild(b)};
   xb("Salió en examen",!!bancoState.exam,()=>{bancoState.exam=!bancoState.exam;ctx={};render()});
   if(bancoState.code==="MAN"){xb("★ Probables en supuesto",!!bancoState.prio,()=>{bancoState.prio=!bancoState.prio;ctx={};render()});
-    xb("Quitadas por ti",!!bancoState.out,()=>{bancoState.out=!bancoState.out;ctx={};render()})}
+  }
+  {const nOut=L.filter(l=>revOf(l.id)===0).length;if(nOut||bancoState.out)xb("🪦 Cementerio ("+nOut+")",!!bancoState.out,()=>{bancoState.out=!bancoState.out;ctx={};render()})}
   xb("Mostrar mandos y no bomberos",prog.hideMando===false,()=>{prog.hideMando=prog.hideMando===false?true:false;qkCache.key="";save();ctx={};render()});
   const ll=el.querySelector("#ll");
-  const outMode=bancoState.code==="MAN"&&bancoState.out;
+  const outMode=!!bancoState.out;
   const filt=()=>{const q=norm(bancoState.q);return L.filter(l=>(outMode?revOf(l.id)===0:visible(l))&&(!bancoState.prio||bancoState.code!=="MAN"||l.prio===1)&&(!bancoState.exam||EXAM[l.id])&&(bancoState.code==="todos"||l.code===bancoState.code)&&(bancoState.cat==="todas"||l.category===bancoState.cat)&&(!q||norm(l.title+" "+l.role+" "+l.section+" "+l.code).includes(q)))};
   const draw=()=>{const ls=filt();el.querySelector("#cnt").textContent=ls.length+" listas · "+ls.reduce((a,l)=>a+l.items.length,0)+" puntos";ll.innerHTML="";
     if(!ls.length){ll.innerHTML='<p class="empty">Ninguna lista con ese filtro.</p>';return}
-    ls.slice(0,400).forEach(l=>{const b=document.createElement("button");b.className="lcard";const s=st(l.id);
-      b.innerHTML=`<span class="n">${l.items.length}</span><span class="t">${esc(l.title)}</span><span class="dot ${boxClass(l.id)}" title="${s?"Caja "+s.box:"Sin practicar"}"></span><span class="s"><span class="plate">${l.code}</span> <span class="mono">${esc(l.section)}</span> · ${CAT[l.category]||l.category}${l.ordered?" · con orden":""}${l.prio===1?' · <span class="tag">★ Probable</span>':""}${s?" · mejor "+Math.round(100*s.best)+"%":""}${EXAM[l.id]?' · <span class="tag exam">Salió en examen</span>':""}</span>`;
-      b.onclick=()=>go("lista",{id:l.id});ll.appendChild(b)})};
+    ls.slice(0,400).forEach(l=>{const row=document.createElement("div");row.className="lrow";const b=document.createElement("button");b.className="lcard";const s=st(l.id);
+      b.innerHTML=`<span class="n">${l.items.length}</span><span class="t">${esc(l.title)}</span><span class="dot ${boxClass(l.id)}" title="${s?"Caja "+s.box:"Sin practicar"}"></span><span class="s"><span class="plate">${l.code}</span> <span class="mono">${esc(l.section)}</span> · ${CAT[l.category]||l.category}${l.ordered?" · con orden":""}${l.prio===1?' · <span class="tag">★ Probable</span>':""}${impOf(l)==="alta"?' · <span class="tag">▲ Importancia alta</span>':impOf(l)==="baja"?' · <span class="muted">▼ baja</span>':""}${s?" · mejor "+Math.round(100*s.best)+"%":""}${EXAM[l.id]?' · <span class="tag exam">Salió en examen</span>':""}</span>`;
+      b.onclick=()=>go("lista",{id:l.id});row.appendChild(b);
+      const x=document.createElement("button");x.className="lx";x.type="button";x.textContent=outMode?"Recuperar":"Retirar";x.title=outMode?"Volver a meterla en el banco, el repaso y los simulacros":"Mandarla al cementerio: sale del banco, del repaso, de los simulacros y de las estadísticas";
+      x.onclick=()=>{setRev(l.id,outMode?1:0);render()};row.appendChild(x);ll.appendChild(row)})};
   const fq=el.querySelector("#fq");fq.oninput=()=>{bancoState.q=fq.value;draw()};
   el.querySelector("#testAll").onclick=()=>{const ls=filt();if(ls.length)startQueue(shuffle(ls.map(l=>l.id)).slice(0,30),"banco")};
+  {const ta=el.querySelector("#testAll"),bulk=document.createElement("button");bulk.className="btn small";let armed=false;
+    const lbl=()=>{const n=filt().length;bulk.textContent=outMode?`Recuperar todas (${n})`:`Retirar estas ${n}`;bulk.hidden=!n||(!outMode&&bancoState.code==="todos"&&bancoState.cat==="todas"&&!bancoState.q)};lbl();
+    bulk.onclick=()=>{if(!outMode&&!armed){armed=true;bulk.textContent="¿Seguro? Pulsa otra vez";bulk.classList.add("primary");return}
+      filt().forEach(l=>setRev(l.id,outMode?1:0));render()};
+    ta.parentNode.insertBefore(bulk,ta);fq.addEventListener("input",()=>{armed=false;bulk.classList.remove("primary");lbl()})}
   draw();
 }
 
@@ -568,6 +641,8 @@ function vLista(el){
   ${EXAM[l.id]?`<div class="note exam"><b>Salió en examen.</b> ${esc(EXAM[l.id])}</div>`:""}
   ${l.note?`<div class="note">${esc(l.note)}</div>`:""}
   ${mnemoOf(l.id)?`<div class="note"><b>Tu regla:</b> ${esc(mnemoOf(l.id))}</div>`:""}
+  ${impHtml(l)}
+  ${l.code!=="MAN"?`<div class="row" style="gap:8px"><span class="muted" style="font-size:.88rem">${revOf(l.id)===0?"Esta lista está en el cementerio.":""}</span><button class="btn small" data-rv="${revOf(l.id)===0?1:0}">${revOf(l.id)===0?"Recuperar del cementerio":"Retirar del banco (al cementerio)"}</button></div>`:""}
   ${l.code==="MAN"?`<div class="row" style="gap:8px"><span class="muted" style="font-size:.88rem">${revOf(l.id)===0?"Esta lista está fuera de tu temario.":revOf(l.id)===1?"Esta lista está en tu temario.":"Sin revisar."}</span>${revOf(l.id)!==1?`<button class="btn small" data-rv="1">Entra</button>`:""}${revOf(l.id)!==0?`<button class="btn small" data-rv="0">No entra</button>`:""}</div>`:""}
   <div class="row"><button class="btn primary" id="test">Ponerme a prueba</button>
     <div class="chips" role="group" aria-label="Modo de estudio">
@@ -578,6 +653,7 @@ function vLista(el){
   <div class="panel stack" id="body"></div>`;
   el.querySelector("#bk").onclick=()=>go("banco");
   el.querySelectorAll("[data-rv]").forEach(b=>b.onclick=()=>{setRev(l.id,+b.dataset.rv);render()});
+  impBind(el,l);
   el.querySelector("#test").onclick=()=>go("prueba",{id:l.id,from:"banco"});
   el.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ctx.mode=b.dataset.m;render()});
   const body=el.querySelector("#body");
@@ -608,7 +684,7 @@ function vRevisar(el){
     ${l.note?`<div class="note">${esc(l.note)}</div>`:""}
     <ol class="items">${l.items.map(it=>`<li><div class="it-txt">${hilite(it.text,it.keywords||[])}</div></li>`).join("")}</ol>
     <div class="row" style="gap:8px;position:sticky;bottom:0;background:var(--panel);padding:10px 0 calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);z-index:2"><button class="btn" id="rno">No entra</button><button class="btn primary" id="rsi">Entra en mi temario</button>${revUndo.length?`<button class="toggle-it" id="rundo">Deshacer la anterior</button>`:""}</div>
-    <p class="muted" style="margin:0;font-size:.85rem">"No entra" la quita del banco, del repaso y de los simulacros (la puedes recuperar en Banco → MAN → Quitadas por ti). Las ★ son las que más probable veo en un supuesto; van primero.</p></div>`
+    <p class="muted" style="margin:0;font-size:.85rem">"No entra" la quita del banco, del repaso y de los simulacros (la puedes recuperar en Banco → 🪦 Cementerio). Las ★ son las que más probable veo en un supuesto; van primero.</p></div>`
   :`<div class="panel"><b>Todo revisado.</b> Las que entran ya están en Banco → MAN y entran en el repaso de Inicio cuando las practiques.${revUndo.length?` <button class="toggle-it" id="rundo">Deshacer la última</button>`:""}</div>`}`;
   el.querySelector("#bk").onclick=()=>go("banco",{code:"MAN"});
   const q=(id,fn)=>{const x=el.querySelector(id);if(x)x.onclick=fn};
@@ -652,11 +728,12 @@ function showResult(box,l,g,withSave){
       <div class="row" style="justify-content:space-between;align-items:flex-end"><div><div class="eyebrow">Resultado</div><div class="score">${n}<small> / ${l.items.length}</small></div></div>
       <div class="muted" style="max-width:34ch;font-size:.88rem">Si la corrección automática se ha equivocado, toca "Lo tenía" o "No lo tenía" en cada punto antes de guardar.</div></div>
       <ol class="items">${l.items.map((it,i)=>`<li class="${g[i].hit?"hit":"miss"}"><div class="it-txt">${hilite(it.text,it.keywords||[])}<div class="it-actions"><button class="toggle-it" data-i="${i}">${g[i].hit?"No lo tenía":"Lo tenía"}</button></div></div></li>`).join("")}</ol>
+      <div id="impbox">${impHtml(l)}</div>
       <div class="stack" style="gap:6px"><div><span class="eyebrow">Iniciales</span> <span class="acro" style="font-size:1.2rem">${esc(acronym(l))}</span></div>${mnemoHtml(l,"Tu regla mnemotécnica (escríbela o mejórala ahora)")}</div>
       ${withSave?`<div class="row"><button class="btn primary" id="save">Guardar y ${queue&&queue.i<queue.ids.length-1?"siguiente":"terminar"}</button><button class="btn" id="retry">Repetir sin guardar</button></div>`:""}
     </div>`;
     box.querySelectorAll(".toggle-it").forEach(b=>b.onclick=()=>{g[b.dataset.i].hit=!g[b.dataset.i].hit;draw()});
-    mnemoBind(box,l);
+    mnemoBind(box,l);const ib=()=>{const x=box.querySelector("#impbox");if(x)impBind(x,l,()=>{x.innerHTML=impHtml(l);ib()})};ib();
     if(withSave){
       box.querySelector("#save").onclick=()=>{
         const miss=g.map((x,i)=>x.hit?-1:i).filter(i=>i>=0);grade(l.id,n/l.items.length,miss);
@@ -822,6 +899,16 @@ function vMetodo(el){
     <div class="row"><button class="btn" id="expBtn">Copiar mi progreso</button><span class="muted" id="expMsg" style="font-size:.88rem"></span></div>
     <textarea id="impTxt" style="min-height:90px;font-family:var(--f-mono);font-size:.8rem" placeholder="Pega aquí el progreso copiado de la otra versión"></textarea>
     <div class="row"><button class="btn primary" id="impBtn">Importar</button><span class="muted" id="impMsg" style="font-size:.88rem"></span></div>
+  </div>
+  <div class="panel stack" style="max-width:68ch;margin-top:14px">
+    <h3 style="font-size:1.35rem">Importancia: qué vuelve más y qué menos</h3>
+    <p style="margin:0">Cada lista tiene una importancia que cambia cada cuánto te vuelve a salir: <b>Alta</b> vuelve antes (los intervalos ×0,6: 1, 2, 4, 8, 18, 36 días), <b>Normal</b> al ritmo de siempre (1, 3, 7, 14, 30, 60) y <b>Baja</b> más tarde (×1,8: 2, 5, 13, 25, 54, 90). Además, en el repaso de Inicio las de importancia alta suben y las de baja bajan.</p>
+    <p style="margin:0">La app te sugiere una: funciones de bombero y maniobras con orden de 10 puntos o menos → alta; listas largas (13 o más puntos), anexos, recursos y "otros" → baja; el resto, normal. Tú mandas: cámbiala al abrir la lista o al corregirla. Tu criterio vale más que el mío: si crees que algo es más preguntable (maniobras de ascensor, tráfico, modo repetidor), súbela; si son 20 mini apartados que casi seguro no preguntan, bájala.</p>
+  </div>
+  <div class="panel stack" style="max-width:68ch;margin-top:14px">
+    <div class="row" style="justify-content:space-between"><h3 style="font-size:1.35rem">Lo que pesa en el examen</h3><span class="eyebrow">Últimos 2 exámenes · sobre 10</span></div>
+    <div style="overflow-x:auto"><table class="wt"><tbody>${WEIGHTS.map(([n,p,s,c])=>`<tr><td>${esc(n)}<div class="wbar" style="width:${(parseFloat(p.replace(",","."))/4*100).toFixed(0)}%"></div></td><td class="pts">${p}</td><td style="text-align:right"><span class="pill ${c}">${esc(s)}</span></td></tr>`).join("")}</tbody></table></div>
+    <p class="muted" style="margin:0;font-size:.85rem">En los dos exámenes, todas las funciones preguntadas fueron de bomberos conductores, zapadores y equipos, nunca de mandos. Por eso las listas de Cabo, Sargento, CECOM, etc. están ocultas (se pueden mostrar en el banco).</p>
   </div>`;
   const ta=el.querySelector("#impTxt");
   el.querySelector("#expBtn").onclick=()=>{const txt=JSON.stringify(prog);const m=el.querySelector("#expMsg");
@@ -1896,6 +1983,94 @@ function avatarHtml(rk,xp,nx){const lv=Math.max(0,RANKS.findIndex(r=>r===rk));
   return`<button class="avatar lv${lv}" id="avatar" type="button" aria-label="Tu bombero: ${esc(rk[1])}, nivel ${lv+1} de ${RANKS.length}. Tócalo.">${avatarSvg(lv)}<span class="av-lv">Nv ${lv+1}</span><span class="av-bub" hidden></span></button>`}
 function avatarBind(el){const a=el.querySelector("#avatar");if(!a)return;let t=null;
   a.onclick=()=>{a.classList.remove("jump");void a.offsetWidth;a.classList.add("jump");const b=a.querySelector(".av-bub");b.textContent=AV_LINES[Math.floor(Math.random()*AV_LINES.length)];b.hidden=false;clearTimeout(t);t=setTimeout(()=>{b.hidden=true;a.classList.remove("jump")},1800)}}
+
+/* ---------- Gráficas: estadísticas visuales ---------- */
+function logAttempt(id,r){prog.alog=prog.alog||[];prog.alog.push({t:Date.now(),id,r:Math.round(r*100)/100});if(prog.alog.length>5000)prog.alog=prog.alog.slice(-5000)}
+const band=v=>v===null||v===undefined?"none":v<.6?"bad":v<.85?"mid":"ok";
+const bandCol={bad:"var(--bad)",mid:"var(--hivis)",ok:"var(--ok)",none:"var(--sunk)"};
+const pc=v=>v===null||v===undefined?"—":Math.round(v*100)+"%";
+function grAgg(ls){let n=0,seen=0,sum=0,ok=0,bad=0;ls.forEach(l=>{n++;const s=st(l.id);if(s&&s.lastScore!==undefined){seen++;sum+=s.lastScore;if(s.box>=4)ok++;if(s.lastScore<.6)bad++}});return{n,seen,avg:seen?sum/seen:null,ok,bad}}
+function hbars(rows,opt={}){ // rows: {label,sub,v,n,seen,click}
+  return`<div class="gbars">${rows.map(r=>`<div class="gbar" ${r.click?`data-go="${esc(r.click)}"`:""} title="${esc(r.label)}: ${pc(r.v)}${r.seen!==undefined?` · ${r.seen}/${r.n} vistas`:""}">
+    <div class="gl">${esc(r.label)}${r.sub?`<small>${esc(r.sub)}</small>`:""}</div>
+    <div class="gt"><i style="width:${r.v===null?0:Math.max(2,r.v*100)}%;background:${bandCol[band(r.v)]}"></i>${opt.cover&&r.n?`<b style="width:${(100*r.seen/r.n).toFixed(1)}%"></b>`:""}</div>
+    <div class="gv">${pc(r.v)}${r.seen!==undefined?`<small>${r.seen}/${r.n}</small>`:""}</div></div>`).join("")}</div>`}
+const grLegend=`<div class="glegend"><span><i style="background:var(--ok)"></i>85% o más</span><span><i style="background:var(--hivis)"></i>60–84%</span><span><i style="background:var(--bad)"></i>menos de 60%</span></div>`;
+let grState={};
+function vGraf(el){
+  const V=L.filter(visible),now=Date.now(),seenL=V.filter(l=>{const s=st(l.id);return s&&s.lastScore!==undefined});
+  const all=grAgg(V),core=L.filter(l=>nucleo(l)&&visible(l)),cAgg=grAgg(core);
+  const alog=(prog.alog||[]);const d7=alog.filter(a=>a.t>now-7*DAY).length;
+  // 1) cajas
+  const boxes=[0,0,0,0,0,0,0];V.forEach(l=>{const s=st(l.id);boxes[s?Math.max(0,s.box||0):0]++});
+  const unseen=V.length-seenL.length;const segs=[["Sin ver",unseen,"var(--sunk)"],["Caja 1 (falladas)",boxes[1],"var(--bad)"],["Caja 2-3 (en curso)",boxes[2]+boxes[3],"var(--hivis)"],["Caja 4-6 (dominadas)",boxes[4]+boxes[5]+boxes[6],"var(--ok)"]];
+  const memBar=`<div class="gstack" role="img" aria-label="${segs.map(s=>s[0]+": "+s[1]).join(", ")}">${segs.filter(s=>s[1]).map(s=>`<i style="flex:${s[1]};background:${s[2]}" title="${s[0]}: ${s[1]} listas (${Math.round(100*s[1]/V.length)}%)"></i>`).join("")}</div>
+    <div class="glegend">${segs.map(s=>`<span><i style="background:${s[2]}"></i>${s[0]} · <b>${s[1]}</b></span>`).join("")}</div>`;
+  // 2) funciones por rol
+  const fams=[...new Set(core.map(famOf).filter(Boolean))];
+  const famRows=fams.map(f=>{const ls=core.filter(l=>famOf(l)===f),a=grAgg(ls);return{label:f,v:a.avg,n:a.n,seen:a.seen,click:"rol:"+f}}).sort((a,b)=>(a.v===null)-(b.v===null)||(b.v??0)-(a.v??0));
+  // 3) mapa de calor rol × PROCOP
+  const codes=[...new Set(core.map(l=>l.code))].sort();
+  const heat=`<div style="overflow-x:auto"><table class="gheat"><thead><tr><th></th>${codes.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${fams.map(f=>`<tr><th>${esc(f.replace(/ \(.*\)/,""))}</th>${codes.map(c=>{const ls=core.filter(l=>famOf(l)===f&&l.code===c);if(!ls.length)return`<td class="na"></td>`;const a=grAgg(ls);
+    return`<td title="${esc(f)} · ${c}: ${a.seen?pc(a.avg)+" de media":"sin ver"} (${a.seen}/${a.n} listas)" style="background:${a.avg===null?"transparent":`color-mix(in srgb, var(--ok) ${Math.round(15+85*a.avg)}%, var(--panel))`};color:${a.avg!==null&&a.avg>.55?"#fff":"var(--fg)"}">${a.seen?Math.round(a.avg*100):"·"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>
+    <div class="glegend"><span>0%</span><span class="ggrad"></span><span>100%</span><span class="muted">· "·" = aún sin ver · vacío = ese rol no está en ese PROCOP</span></div>`;
+  // 4) funciones: mejores y peores listas
+  const fSeen=core.filter(l=>{const s=st(l.id);return s&&s.lastScore!==undefined}).sort((a,b)=>st(b.id).lastScore-st(a.id).lastScore||st(b.id).box-st(a.id).box);
+  const best=fSeen.slice(0,5),worst=fSeen.slice().reverse().filter(l=>st(l.id).lastScore<.85).slice(0,5);
+  const mini=ls=>ls.length?`<ol class="gmini">${ls.map(l=>`<li data-id="${l.id}"><span>${esc(roleLabel(l))} <small>${l.code}</small></span><b style="color:${bandCol[band(st(l.id).lastScore)]}">${pc(st(l.id).lastScore)}</b></li>`).join("")}</ol>`:'<p class="muted" style="margin:0">Aún nada.</p>';
+  // 5) por tema
+  const temaRows=P.map(p=>{const a=grAgg(V.filter(l=>l.code===p.code));return{label:p.code,v:a.avg,n:a.n,seen:a.seen,click:"code:"+p.code}}).sort((a,b)=>(a.v===null)-(b.v===null)||(a.v??1)-(b.v??1));
+  // 6) previsión de repasos 14 días
+  const t0=new Date();t0.setHours(0,0,0,0);const fc=Array(14).fill(0);
+  seenL.forEach(l=>{const d=Math.max(0,Math.floor((st(l.id).due-t0.getTime())/DAY));if(d<14)fc[d]++});
+  const fcMax=Math.max(1,...fc),cap=prog.cap===undefined?25:prog.cap;
+  const fcHtml=`<div class="gcols">${fc.map((n,i)=>{const d=new Date(t0.getTime()+i*DAY);return`<div class="gcol" title="${d.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"short"})}: ${n} listas${i===0?" (incluye atrasadas)":""}"><span class="gn">${n||""}</span><i style="height:${(100*n/fcMax).toFixed(1)}%;background:${cap&&n>cap?"var(--bad)":"var(--fg)"}"></i><span class="gd">${i===0?"hoy":"LMXJVSD"[(d.getDay()+6)%7]}</span></div>`}).join("")}</div>
+    ${cap&&fc.some(n=>n>cap)?`<p class="muted" style="margin:0;font-size:.82rem">En rojo, días con más repasos que tu tope (${cap}): lo que sobre pasa al día siguiente.</p>`:""}`;
+  // 7) actividad 8 semanas
+  const act={};alog.forEach(a=>{const k=dk(a.t);act[k]=(act[k]||0)+1});
+  if(!alog.length)seenL.forEach(l=>{const k=dk(st(l.id).last);act[k]=(act[k]||0)+1});
+  const start=new Date(t0);start.setDate(start.getDate()-((start.getDay()+6)%7)-7*7);
+  const aMax=Math.max(1,...Object.values(act));let cells="";
+  for(let w=0;w<8;w++){cells+=`<div class="gwk">`;for(let d=0;d<7;d++){const day=new Date(start);day.setDate(start.getDate()+w*7+d);const k=dk(day),n=act[k]||0,fut=day>t0;
+    cells+=`<i title="${day.toLocaleDateString("es-ES",{weekday:"short",day:"numeric",month:"short"})}: ${n} listas" style="background:${fut?"transparent":n?`color-mix(in srgb, var(--red) ${Math.round(20+80*n/aMax)}%, var(--panel))`:"var(--sunk)"}"></i>`}cells+=`</div>`}
+  // 8) evolución semanal
+  const wk={};alog.forEach(a=>{const d=new Date(a.t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));const k=dk(d);(wk[k]=wk[k]||[]).push(a.r)});
+  const wks=Object.keys(wk).sort().slice(-12),pts=wks.map(k=>wk[k].reduce((x,y)=>x+y,0)/wk[k].length);
+  let evo='<p class="muted" style="margin:0">Se empieza a dibujar desde hoy: cada intento que guardes queda registrado. Con 2 semanas ya verás la tendencia.</p>';
+  if(pts.length>=2){const W=320,H=120,px=i=>20+i*(W-40)/(pts.length-1),py=v=>H-18-v*(H-34);
+    evo=`<svg viewBox="0 0 ${W} ${H}" class="gline" role="img" aria-label="Nota media por semana">${[0,.6,.85,1].map(v=>`<line x1="20" x2="${W-20}" y1="${py(v)}" y2="${py(v)}" stroke="var(--line)" stroke-width="1"/><text x="2" y="${py(v)+3}" font-size="8" fill="var(--muted)">${v*100}</text>`).join("")}
+      <polyline fill="none" stroke="var(--red)" stroke-width="2" points="${pts.map((v,i)=>px(i)+","+py(v)).join(" ")}"/>
+      ${pts.map((v,i)=>`<circle cx="${px(i)}" cy="${py(v)}" r="4" fill="var(--red)" stroke="var(--panel)" stroke-width="2"><title>Semana del ${new Date(wks[i]+"T12:00").toLocaleDateString("es-ES",{day:"numeric",month:"short"})}: ${pc(v)} (${wk[wks[i]].length} intentos)</title></circle>`).join("")}
+      <text x="${px(pts.length-1)}" y="${py(pts[pts.length-1])-8}" font-size="9" text-anchor="end" fill="var(--fg)" font-weight="700">${pc(pts[pts.length-1])}</text></svg>`}
+  // 9) otras prácticas
+  const acc=(obj,f)=>{let ok=0,bad=0;Object.entries(obj||{}).forEach(([k,s])=>{if(f(k)){ok+=s.ok||0;bad+=s.bad!==undefined?s.bad:failN(s)}});return{ok,bad,v:ok+bad?ok/(ok+bad):null}};
+  const tabK=k=>/^(tren|mando):/.test(k);let tT=0,tM=0,tO=0;Object.entries(prog.tab||{}).forEach(([k,s])=>{if(tabK(k)){tT+=s.bT||0;tM+=s.bM||0;tO+=s.bO||0}});
+  const others=[["Movilización",acc(prog.tab,tabK)],["MMPP · NIP",acc(prog.mmpp,k=>/^mm:(r2n|n2r):/.test(k))],["MMPP · cifras",acc(prog.mmpp,k=>/^mm:(d2c|c2d):/.test(k))],["Definiciones",acc(prog.defs,()=>true)]];
+  const sims=(prog.sims||[]).slice(-1)[0];
+  el.innerHTML=`
+  <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+    <div class="kpi"><b>${pc(all.avg)}</b><span>nota media (último intento de cada lista vista)</span></div>
+    <div class="kpi"><b>${seenL.length}<small class="muted" style="font-size:1rem"> / ${V.length}</small></b><span>listas vistas</span></div>
+    <div class="kpi"><b>${pc(cAgg.avg)}</b><span>media en funciones de bombero · ${cAgg.seen}/${cAgg.n}</span></div>
+    <div class="kpi"><b>${d7}</b><span>intentos en los últimos 7 días</span></div>
+  </div>
+  <section class="panel stack"><h3>Tu memoria</h3>${memBar}<p class="muted" style="margin:0;font-size:.82rem">Cada lista sube de caja cuando sacas 90% o más. Lo verde ya lo tienes; lo amarillo se está asentando; lo rojo es lo que hay que machacar.</p></section>
+  <section class="panel stack"><h3>Funciones por rol: de lo que más sabes a lo que menos</h3>${grLegend}${hbars(famRows,{cover:true})}<p class="muted" style="margin:0;font-size:.82rem">Barra de color: tu media en ese rol. La raya fina debajo: cuánto de ese rol has visto. Toca un rol para abrirlo en "Por rol".</p></section>
+  <section class="panel stack"><h3>Funciones: rol × PROCOP</h3>${heat}</section>
+  <section class="panel stack"><h3>Funciones: tus mejores y tus peores</h3><div class="g2"><div><div class="eyebrow" style="color:var(--ok)">Las que mejor sabes</div>${mini(best)}</div><div><div class="eyebrow" style="color:var(--bad)">Las que más te cuestan</div>${mini(worst)}${worst.length?`<button class="btn small primary" id="grWorst" style="margin-top:8px">Practicar estas ${worst.length}</button>`:""}</div></div></section>
+  <section class="panel stack"><h3>Nota media por tema</h3>${grLegend}${hbars(temaRows,{cover:true})}<p class="muted" style="margin:0;font-size:.82rem">De peor a mejor; abajo lo que aún no has empezado. Toca un tema para abrirlo en el banco.</p></section>
+  <section class="panel stack"><h3>Repasos que te vienen · próximos 14 días</h3>${fcHtml}</section>
+  <section class="panel stack"><h3>Evolución de tu nota media · por semana</h3>${evo}</section>
+  <section class="panel stack"><h3>Constancia · últimas 8 semanas</h3><div class="gact">${cells}</div><div class="glegend"><span>Cada cuadro es un día (columnas = semanas, de lunes a domingo); más oscuro = más listas practicadas.</span></div></section>
+  <section class="panel stack"><h3>Movilización, MMPP y definiciones</h3>${hbars(others.map(([n,a])=>({label:n,sub:a.ok+a.bad?`${a.ok} ✓ · ${a.bad} ✗`:"sin practicar",v:a.v})))}
+    ${tT+tM+tO?`<p class="muted" style="margin:0;font-size:.85rem">En movilización fallas más ${[["el tren",tT],["el mando",tM],["las observaciones",tO]].sort((a,b)=>b[1]-a[1])[0][0]} (tren ✗${tT} · mando ✗${tM} · observaciones ✗${tO}).</p>`:""}
+    <p class="muted" style="margin:0;font-size:.82rem">El detalle de qué fallas en cada uno está en su pestaña, en "Dónde fallas más".${sims?` Último simulacro: ${String(Math.round(sims.score/sims.total*100)/10).replace(".",",")} sobre 10.`:""}</p></section>
+  ${statsHtml()}`;
+  el.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const [t,v]=b.dataset.go.split(/:(.+)/);if(t==="code")go("banco",{code:v});else{rolState.fam=v;go("rol")}});
+  el.querySelectorAll(".gmini [data-id]").forEach(b=>b.onclick=()=>go("lista",{id:b.dataset.id}));
+  const w=el.querySelector("#grWorst");if(w)w.onclick=()=>startQueue(worst.map(l=>l.id),"inicio");
+  statsBind(el);
+}
 
 function vHoy(el){
   autoChecks();
